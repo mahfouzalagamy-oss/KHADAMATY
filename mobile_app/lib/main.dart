@@ -11,7 +11,6 @@ class ServiceOrder {
   final String description;
   final String city;
   final String customerName;
-  final String customerPhone;
   final String pinCode;
   String status;
   int price;
@@ -25,7 +24,6 @@ class ServiceOrder {
     required this.description,
     required this.city,
     required this.customerName,
-    required this.customerPhone,
     required this.pinCode,
     required this.status,
     required this.price,
@@ -64,24 +62,21 @@ class MainPlatformShell extends StatefulWidget {
 
 class _MainPlatformShellState extends State<MainPlatformShell> {
   int _selectedPortal = 0; // 0: عميل, 1: فني, 2: شركات B2B, 3: إدارة KHADAMATY
-  int _bottomTab = 0; // 0: الرئيسية, 1: طلباتي والضمان, 2: الرسائل والدعم, 3: محفظتي و QR
+  int _bottomTab = 0;
   String _selectedCity = 'المنصورة';
   double _customerWallet = 100.0;
   double _techWallet = 420.0;
   bool _techOnline = true;
 
-  final List<String> _cities = [
-    'القاهرة', 'الجيزة', 'الإسكندرية', 'المنصورة', 'طنطا', 'الزقازيق', 'أسيوط', 'أسوان'
-  ];
+  final List<String> _cities = ['القاهرة', 'الجيزة', 'الإسكندرية', 'المنصورة', 'طنطا', 'أسيوط'];
 
   final List<ServiceOrder> _orders = [
     ServiceOrder(
       id: 'KH-9041',
       category: 'تكييف وتبريد',
-      description: 'شحن فريون وصيانة تكييف شارب 1.5 حصان مع تنظيف الوحدة الداخلية',
+      description: 'شحن فريون وصيانة تكييف شارب 1.5 حصان',
       city: 'المنصورة',
       customerName: 'أحمد محمود',
-      customerPhone: '01012345678',
       pinCode: '4829',
       status: 'بانتظار عروض الفنيين',
       price: 450,
@@ -89,38 +84,6 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
       warrantyEnd: '2026-12-10',
       isEmergency: true,
     ),
-    ServiceOrder(
-      id: 'KH-8820',
-      category: 'سباكة',
-      description: 'تغيير خلاط مياه وإصلاح تسريب أسفل الحوض بقطع غيار أصلية',
-      city: 'المنصورة',
-      customerName: 'أحمد محمود',
-      customerPhone: '01012345678',
-      pinCode: '7712',
-      status: 'مكتمل ومضمون',
-      price: 350,
-      technicianName: 'م. مصطفى السيد (فني معتمد)',
-      warrantyEnd: '2027-01-15',
-    ),
-  ];
-
-  final List> _pendingTechnicians = [
-    {
-      'name': 'محمود عبد الرحمن',
-      'specialty': 'فني تكييف وتبريد',
-      'city': 'المنصورة',
-      'nationalId': '29405121200914',
-      'criminalRecord': 'تم إرفاق الفيش الجنائي ساري',
-      'approved': false,
-    },
-    {
-      'name': 'إبراهيم عادل',
-      'specialty': 'فني كهرباء منازل ذكية',
-      'city': 'القاهرة',
-      'nationalId': '29108190102345',
-      'criminalRecord': 'تم إرفاق الفيش الجنائي ساري',
-      'approved': false,
-    },
   ];
 
   final List> _b2bContracts = [
@@ -131,232 +94,66 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
       'monthlyFee': 4500,
       'status': 'ساري ومفعل',
     },
-    {
-      'company': 'مطاعم النيل السياحية (4 فروع)',
-      'plan': 'عقد طوارئ سباكة وتبريد غرف تجميد',
-      'visitsLeft': 9,
-      'monthlyFee': 3200,
-      'status': 'ساري ومفعل',
-    },
   ];
 
   Color get _portalPrimaryColor {
     switch (_selectedPortal) {
-      case 0:
-        return const Color(0xFF0F766E);
-      case 1:
-        return const Color(0xFF1D4ED8);
-      case 2:
-        return const Color(0xFF6D28D9);
-      case 3:
-        return const Color(0xFFB91C1C);
-      default:
-        return const Color(0xFF0F766E);
+      case 0: return const Color(0xFF0F766E);
+      case 1: return const Color(0xFF1D4ED8);
+      case 2: return const Color(0xFF6D28D9);
+      case 3: return const Color(0xFFB91C1C);
+      default: return const Color(0xFF0F766E);
     }
   }
 
-  void _showWarrantyCertificateDialog(ServiceOrder order) {
+  void _showOrderDialog(String category, String priceRange, {bool isEmergency = false}) {
+    final descCtrl = TextEditingController();
     showDialog(
       context: context,
       builder: (ctx) => Directionality(
         textDirection: TextDirection.rtl,
         child: AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-          title: Row(
+          title: Text(isEmergency ? '🚨 طوارئ عاجلة - $category' : 'طلب صيانة معتمد - $category'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.verified, color: Colors.teal.shade700, size: 30),
-              const SizedBox(width: 8),
-              const Expanded(
-                child: Text('شهادة ضمان وفاتورة رسمية موثقة',
-                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18)),
+              Text('مؤشر السعر العادل في $_selectedCity: $priceRange ج.م (شامل الضمان)'),
+              const SizedBox(height: 12),
+              TextField(
+                controller: descCtrl,
+                maxLines: 2,
+                decoration: const InputDecoration(labelText: 'وصف العطل باختصار', border: OutlineInputBorder()),
               ),
             ],
           ),
-          content: SingleChildScrollView(
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.teal.shade50,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.teal.shade700, width: 2),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Center(
-                    child: Text('منصة خدماتي - KHADAMATY',
-                        style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900, color: Color(0xFF0F766E))),
-                  ),
-                  const Center(
-                    child: Text('ضمان ذهبي لمدة 30 يوماً شاملاً قطع الغيار والمصنعية',
-                        style: TextStyle(fontSize: 12, color: Colors.black54)),
-                  ),
-                  const Divider(height: 24, thickness: 1.5),
-                  Text('رقم الطلب المرجعي: ${order.id}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                  Text('القسم والخدمة: ${order.category}'),
-                  Text('التفاصيل: ${order.description}'),
-                  Text('المحافظة: ${order.city}'),
-                  Text('الفني المعتمد: ${order.technicianName}'),
-                  Text('كود الأمان المنزلي المطابق (PIN): ${order.pinCode}'),
-                  Text('إجمالي القيمة المدفوعة: ${order.price} ج.م',
-                      style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF0F766E))),
-                  Text('سريان الضمان حتى: ${order.warrantyEnd}',
-                      style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.redAccent)),
-                  const SizedBox(height: 16),
-                  Center(
-                    child: Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.grey.shade300),
-                      ),
-                      child: Column(
-                        children: [
-                          const Icon(Icons.qr_code_2, size: 100, color: Colors.black87),
-                          Text('QR VERIFIED: ${order.id}-${order.pinCode}',
-                              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('إغلاق')),
-            FilledButton.icon(
-              icon: const Icon(Icons.copy),
-              label: const Text('نسخ شهادة الضمان'),
-              onPressed: () {
-                Clipboard.setData(ClipboardData(
-                    text: 'شهادة ضمان خدماتي KHADAMATY - طلب ${order.id} - كود PIN: ${order.pinCode} - ضمان حتى ${order.warrantyEnd}'));
-                Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('تم نسخ شهادة الضمان الموثقة إلى الحافظة بنجاح!')),
-                );
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showNewOrderDialog(String category, String minMaxPrice, {bool isEmergency = false}) {
-    final descController = TextEditingController();
-    final priceController = TextEditingController(text: isEmergency ? '550' : '400');
-
-    showDialog(
-      context: context,
-      builder: (ctx) => Directionality(
-        textDirection: TextDirection.rtl,
-        child: AlertDialog(
-          title: Text(isEmergency ? 'طلب طوارئ عاجل (خلال 45 دقيقة) - $category' : 'طلب صيانة معتمد - $category'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: Colors.amber.shade50,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.amber.shade400),
-                  ),
-                  child: Text('مؤشر السعر العادل في $_selectedCity: $minMaxPrice ج.م (شامل الكشف والضمان 30 يوماً)'),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: descController,
-                  maxLines: 3,
-                  decoration: const InputDecoration(
-                    labelText: 'وصف العطل أو الخدمة المطلوبة بالتفصيل',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: priceController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'السعر المقترح للخدمة (ج.م)',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-              ],
-            ),
-          ),
           actions: [
             TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء')),
-            FilledButton.icon(
-              icon: const Icon(Icons.check_circle),
-              label: const Text('إرسال الطلب وتوليد كود PIN'),
+            FilledButton(
               onPressed: () {
                 final newPin = (1000 + (DateTime.now().millisecond % 8999)).toString();
-                final newOrder = ServiceOrder(
-                  id: 'KH-${DateTime.now().millisecondsSinceEpoch.toString().substring(8)}',
-                  category: category,
-                  description: descController.text.isEmpty ? 'طلب صيانة وفحص شامل ($category)' : descController.text,
-                  city: _selectedCity,
-                  customerName: 'عميل خدماتي',
-                  customerPhone: '01012345678',
-                  pinCode: newPin,
-                  status: 'بانتظار عروض الفنيين',
-                  price: int.tryParse(priceController.text) ?? 400,
-                  technicianName: 'بانتظار قبول فني',
-                  warrantyEnd: '2026-12-30',
-                  isEmergency: isEmergency,
-                );
                 setState(() {
-                  _orders.insert(0, newOrder);
+                  _orders.insert(0, ServiceOrder(
+                    id: 'KH-${DateTime.now().millisecondsSinceEpoch.toString().substring(8)}',
+                    category: category,
+                    description: descCtrl.text.isEmpty ? 'صيانة عامة' : descCtrl.text,
+                    city: _selectedCity,
+                    customerName: 'عميل خدماتي',
+                    pinCode: newPin,
+                    status: 'بانتظار عروض الفنيين',
+                    price: 400,
+                    technicianName: 'بانتظار قبول فني',
+                    warrantyEnd: '2026-12-30',
+                    isEmergency: isEmergency,
+                  ));
                   _bottomTab = 1;
                 });
                 Navigator.pop(ctx);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    backgroundColor: Colors.teal.shade800,
-                    content: Text('تم إنشاء الطلب ${newOrder.id} بنجاح! كود الأمان المنزلي PIN: $newPin (افتح بوابة الفنيين لقبوله)'),
-                  ),
+                  SnackBar(content: Text('✅ تم إنشاء الطلب بنجاح! كود الأمان PIN: $newPin')),
                 );
               },
+              child: const Text('إرسال وتوليد PIN'),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showQrModal(String title, String qrData, String subtitle) {
-    showDialog(
-      context: context,
-      builder: (ctx) => Directionality(
-        textDirection: TextDirection.rtl,
-        child: AlertDialog(
-          title: Text(title, textAlign: TextAlign.center),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.teal, width: 2),
-                ),
-                child: const Icon(Icons.qr_code_2, size: 150, color: Color(0xFF0F766E)),
-              ),
-              const SizedBox(height: 12),
-              SelectableText(qrData, textAlign: TextAlign.center, style: const TextStyle(fontSize: 12, color: Colors.blueGrey)),
-              const SizedBox(height: 8),
-              Text(subtitle, textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.w600)),
-            ],
-          ),
-          actions: [
-            FilledButton(onPressed: () => Navigator.pop(ctx), child: const Text('إغلاق')),
           ],
         ),
       ),
@@ -373,12 +170,12 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
             constraints: const BoxConstraints(maxWidth: 920),
             child: Column(
               children: [
-                _buildTopPortalSelectorBar(),
-                _buildAppHeader(),
+                _buildPortalSelector(),
+                _buildHeader(),
                 Expanded(
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.all(16),
-                    child: _buildActiveScreenContent(),
+                    child: _buildBodyContent(),
                   ),
                 ),
               ],
@@ -386,740 +183,297 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
           ),
         ),
       ),
-      bottomNavigationBar: _buildBottomNavigationBar(),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _bottomTab,
+        onDestinationSelected: (i) => setState(() => _bottomTab = i),
+        destinations: const [
+          NavigationDestination(icon: Icon(Icons.home), label: 'الرئيسية'),
+          NavigationDestination(icon: Icon(Icons.verified), label: 'طلباتي والضمان'),
+          NavigationDestination(icon: Icon(Icons.support_agent), label: 'الدعم'),
+          NavigationDestination(icon: Icon(Icons.account_balance_wallet), label: 'المحفظة'),
+        ],
+      ),
     );
   }
 
-  Widget _buildTopPortalSelectorBar() {
-    final List<String> titles = ['بوابة العميل', 'بوابة الفنيين', 'بوابة الشركات B2B', 'إدارة KHADAMATY'];
-    final List<IconData> icons = [Icons.person, Icons.handyman, Icons.business, Icons.admin_panel_settings];
+  Widget _buildPortalSelector() {
+    final titles = ['بوابة العميل', 'بوابة الفنيين', 'بوابة الشركات B2B', 'إدارة KHADAMATY'];
+    final icons = [Icons.person, Icons.handyman, Icons.business, Icons.admin_panel_settings];
 
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+      padding: const EdgeInsets.all(10),
       color: Colors.white,
       child: Wrap(
         spacing: 8,
         runSpacing: 8,
         alignment: WrapAlignment.center,
-        children: List.generate(titles.length, (index) {
-          final isSelected = _selectedPortal == index;
+        children: List.generate(4, (i) {
+          final isSelected = _selectedPortal == i;
           return ChoiceChip(
-            avatar: Icon(
-              icons[index],
-              size: 18,
-              color: isSelected ? Colors.white : _portalPrimaryColor,
-            ),
-            label: Text(
-              titles[index],
-              style: TextStyle(
-                color: isSelected ? Colors.white : Colors.black87,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            avatar: Icon(icons[i], size: 18, color: isSelected ? Colors.white : _portalPrimaryColor),
+            label: Text(titles[i], style: TextStyle(color: isSelected ? Colors.white : Colors.black87, fontWeight: FontWeight.bold)),
             selected: isSelected,
             selectedColor: _portalPrimaryColor,
-            onSelected: (_) {
-              setState(() {
-                _selectedPortal = index;
-                _bottomTab = 0;
-              });
-            },
+            onSelected: (_) => setState(() { _selectedPortal = i; _bottomTab = 0; }),
           );
         }),
       ),
     );
   }
 
-  Widget _buildAppHeader() {
-    final portalTitles = [
-      'بوابة العملاء المضمونة',
-      'بوابة الفنيين المعتمدين (رادار استقبال الطلبات)',
-      'بوابة عقود الشركات والمؤسسات B2B',
-      'لوحة تحكم المدير العام - إدارة KHADAMATY',
-    ];
-
+  Widget _buildHeader() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
-      ),
+      padding: const EdgeInsets.all(16),
+      color: Colors.white,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Row(
             children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: _portalPrimaryColor.withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(Icons.home_repair_service, color: _portalPrimaryColor, size: 28),
-              ),
+              Icon(Icons.home_repair_service, color: _portalPrimaryColor, size: 30),
               const SizedBox(width: 10),
-              Column(
+              const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('خدماتي KHADAMATY', style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900)),
-                  Text(
-                    portalTitles[_selectedPortal],
-                    style: TextStyle(fontSize: 12, color: _portalPrimaryColor, fontWeight: FontWeight.bold),
-                  ),
+                  Text('خدماتي KHADAMATY', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+                  Text('المنصة الذكية المضمونة للصيانة', style: TextStyle(fontSize: 11, color: Colors.grey)),
                 ],
               ),
             ],
           ),
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.amber.shade100,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  _selectedPortal == 1
-                      ? 'محفظة الفني: ${_techWallet.toInt()} ج.م'
-                      : 'الرصيد: ${_customerWallet.toInt()} ج.م',
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-                ),
-              ),
-              const SizedBox(width: 8),
-              DropdownButton<String>(
-                value: _selectedCity,
-                underline: const SizedBox(),
-                items: _cities.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
-                onChanged: (val) => setState(() => _selectedCity = val!),
-              ),
-            ],
+          DropdownButton<String>(
+            value: _selectedCity,
+            items: _cities.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+            onChanged: (v) => setState(() => _selectedCity = v!),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildActiveScreenContent() {
-    if (_bottomTab == 1) return _buildOrdersAndWarrantyTab();
-    if (_bottomTab == 2) return _buildMessagesAndSupportTab();
-    if (_bottomTab == 3) return _buildWalletAndQrTab();
+  Widget _buildBodyContent() {
+    if (_bottomTab == 1) return _buildOrdersTab();
+    if (_bottomTab == 2) return _buildSupportTab();
+    if (_bottomTab == 3) return _buildWalletTab();
 
     switch (_selectedPortal) {
-      case 0:
-        return _buildCustomerPortalHome();
-      case 1:
-        return _buildTechnicianPortalHome();
-      case 2:
-        return _buildB2BPortalHome();
-      case 3:
-        return _buildAdminPortalHome();
-      default:
-        return _buildCustomerPortalHome();
+      case 0: return _buildCustomerHome();
+      case 1: return _buildTechnicianHome();
+      case 2: return _buildB2BHome();
+      case 3: return _buildAdminHome();
+      default: return _buildCustomerHome();
     }
   }
 
-  // 1. بوابة العميل
-  Widget _buildCustomerPortalHome() {
-    final List> services = [
-      {'name': 'تكييف وتبريد', 'icon': Icons.ac_unit, 'color': Colors.blue, 'price': '250 - 650'},
-      {'name': 'سباكة', 'icon': Icons.plumbing, 'color': Colors.teal, 'price': '150 - 450'},
-      {'name': 'كهرباء', 'icon': Icons.bolt, 'color': Colors.orange, 'price': '150 - 500'},
-      {'name': 'أجهزة منزلية', 'icon': Icons.local_laundry_service, 'color': Colors.indigo, 'price': '250 - 700'},
-      {'name': 'نجارة', 'icon': Icons.handyman, 'color': Colors.brown, 'price': '200 - 600'},
-      {'name': 'نظافة شاملة', 'icon': Icons.cleaning_services, 'color': Colors.green, 'price': '350 - 1200'},
-      {'name': 'نقاشة ودهانات', 'icon': Icons.format_paint, 'color': Colors.pink, 'price': '500 - 2500'},
-      {'name': 'عقود شركات B2B', 'icon': Icons.business_center, 'color': Colors.deepPurple, 'price': 'باقات شهرية'},
-    ];
-
+  Widget _buildCustomerHome() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Card(
-          elevation: 0,
-          color: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          color: Colors.teal.shade700,
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _quickActionButton(Icons.emergency_share, 'طوارئ 45 د', Colors.red, () {
-                  _showNewOrderDialog('طوارئ عاجلة', '300 - 700', isEmergency: true);
-                }),
-                _quickActionButton(Icons.qr_code_2, 'QR التطبيق', Colors.indigo, () {
-                  _showQrModal('رابط تطبيق خدماتي KHADAMATY', 'https://khadamaty.mahfouzalagamy.workers.dev',
-                      'امسح الرمز لفتح وتثبيت تطبيق خدماتي على أي هاتف');
-                }),
-                _quickActionButton(Icons.phone_in_talk, 'خط ساخن', Colors.blue, () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('خدمة عملاء خدماتي الخط الساخن: 19999')),
-                  );
-                }),
-                _quickActionButton(Icons.chat, 'دعم واتساب', Colors.green, () {
-                  setState(() => _bottomTab = 2);
-                }),
-                _quickActionButton(Icons.verified_user, 'شهادة الضمان', Colors.deepPurple, () {
-                  _showWarrantyCertificateDialog(_orders.first);
-                }),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 16),
-        const Text('محتاج خدمة إيه النهاردة؟',
-            textAlign: TextAlign.center, style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900)),
-        const SizedBox(height: 4),
-        const Text('اختر القسم لطلب فني معتمد بكود أمان منزلي PIN وضمان رسمي 30 يوماً',
-            textAlign: TextAlign.center, style: TextStyle(color: Colors.black54)),
-        const SizedBox(height: 16),
-        InkWell(
-          onTap: () => _showNewOrderDialog('تشخيص ذكي بالصوت/الفيديو', '200 - 500'),
-          child: Container(
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(colors: [Color(0xFF0F766E), Color(0xFF115E59)]),
-              borderRadius: BorderRadius.circular(18),
-            ),
-            child: const Row(
-              children: [
-                Icon(Icons.mic, color: Colors.white, size: 38),
-                SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('مش عارف تختار؟ (تشخيص صوتي / فيديو)',
-                          style: TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.bold)),
-                      Text('صف المشكلة بصوتك أو فيديو قصير واعرف السعر الاسترشادي العادل فوراً',
-                          style: TextStyle(color: Colors.white70, fontSize: 13)),
-                    ],
-                  ),
+                const Text('مرحباً بك في خدماتي KHADAMATY', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 6),
+                const Text('طلب فني معتمد، كود أمان منزلي PIN، وضمان ذهبي 30 يوماً.', style: TextStyle(color: Colors.white70)),
+                const SizedBox(height: 12),
+                FilledButton.icon(
+                  style: FilledButton.styleFrom(backgroundColor: Colors.white, foregroundColor: Colors.teal.shade900),
+                  icon: const Icon(Icons.emergency),
+                  label: const Text('طلب طوارئ عاجل خلال 45 دقيقة'),
+                  onPressed: () => _showOrderDialog('طوارئ', '300 - 600', isEmergency: true),
                 ),
-                Icon(Icons.arrow_forward_ios, color: Colors.white, size: 18),
               ],
             ),
           ),
         ),
-        const SizedBox(height: 20),
-        const Text('الأقسام المعتمدة في خدماتي (اضغط على أي قسم لطلب فني فوراً):',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 12),
-        GridView.builder(
+        const SizedBox(height: 16),
+        const Text('الأقسام الرئيسية:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 10),
+        GridView.count(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 4,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            childAspectRatio: 0.95,
-          ),
-          itemCount: services.length,
-          itemBuilder: (context, index) {
-            final item = services[index];
-            final Color itemColor = item['color'] as Color;
-            return InkWell(
-              onTap: () {
-                if (item['name'] == 'عقود شركات B2B') {
-                  setState(() => _selectedPortal = 2);
-                } else {
-                  _showNewOrderDialog(item['name'] as String, item['price'] as String);
-                }
-              },
-              borderRadius: BorderRadius.circular(16),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.grey.shade200),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CircleAvatar(
-                      radius: 26,
-                      backgroundColor: itemColor.withOpacity(0.12),
-                      child: Icon(item['icon'] as IconData, color: itemColor, size: 28),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(item['name'] as String,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                    const SizedBox(height: 2),
-                    Text('${item['price']} ج.م',
-                        style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
-                  ],
-                ),
-              ),
-            );
-          },
-        ),
-      ],
-    );
-  }
-
-  // 2. بوابة الفنيين (شاشة مستقلة بالكامل)
-  Widget _buildTechnicianPortalHome() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Container(
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(colors: [Color(0xFF1E3A8A), Color(0xFF2563EB)]),
-            borderRadius: BorderRadius.circular(18),
-          ),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('بوابة الفني المعتمد - استقبال الطلبات الحية',
-                          style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
-                      Text('م. مصطفى السيد • تخصص تكييف وسباكة • تقييم 4.9',
-                          style: TextStyle(color: Colors.white70, fontSize: 13)),
-                    ],
-                  ),
-                  Switch(
-                    value: _techOnline,
-                    activeColor: Colors.greenAccent,
-                    onChanged: (v) => setState(() => _techOnline = v),
-                  ),
-                ],
-              ),
-              const Divider(color: Colors.white24, height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _statBox('رصيد المحفظة', '${_techWallet.toInt()} ج.م', Colors.white),
-                  _statBox('طلبات متاحة بالمنطقة', '${_orders.length} طلبات', Colors.amberAccent),
-                  _statBox('عمولة المنصة', '15% فقط', Colors.greenAccent),
-                ],
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 20),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisCount: 3,
+          crossAxisSpacing: 10,
+          mainAxisSpacing: 10,
+          childAspectRatio: 1.1,
           children: [
-            Text('رادار طلبات العملاء المباشرة في $_selectedCity:',
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            FilledButton.tonalIcon(
-              icon: const Icon(Icons.account_balance_wallet),
-              label: const Text('شحن محفظة الفني (+200 ج.م)'),
-              onPressed: () {
-                setState(() => _techWallet += 200);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('تم شحن محفظة الفني بمبلغ 200 ج.م بنجاح!')),
-                );
-              },
-            ),
+            _serviceCard('تكييف', Icons.ac_unit, Colors.blue, '250 - 600'),
+            _serviceCard('سباكة', Icons.plumbing, Colors.teal, '150 - 400'),
+            _serviceCard('كهرباء', Icons.bolt, Colors.orange, '150 - 450'),
+            _serviceCard('أجهزة منزلية', Icons.local_laundry_service, Colors.indigo, '250 - 700'),
+            _serviceCard('نجارة', Icons.handyman, Colors.brown, '200 - 500'),
+            _serviceCard('نظافة', Icons.cleaning_services, Colors.green, '350 - 1000'),
           ],
         ),
-        const SizedBox(height: 12),
-        ..._orders.map((order) => Card(
-              margin: const EdgeInsets.only(bottom: 14),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            if (order.isEmergency)
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                margin: const EdgeInsets.only(left: 8),
-                                decoration: BoxDecoration(
-                                    color: Colors.red.shade100, borderRadius: BorderRadius.circular(6)),
-                                child: const Text('طوارئ 45 د',
-                                    style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 12)),
-                              ),
-                            Text('${order.category} (${order.id})',
-                                style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
-                          ],
-                        ),
-                        Chip(
-                          label: Text(order.status, style: const TextStyle(fontWeight: FontWeight.bold)),
-                          backgroundColor: Colors.blue.shade50,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Text('وصف العطل: ${order.description}', style: const TextStyle(fontSize: 14)),
-                    const SizedBox(height: 6),
-                    Text('المدينة: ${order.city} • العميل: ${order.customerName} • السعر المعروض: ${order.price} ج.م',
-                        style: const TextStyle(color: Colors.black54, fontSize: 13)),
-                    const SizedBox(height: 14),
-                    Wrap(
-                      spacing: 10,
-                      runSpacing: 10,
-                      children: [
-                        if (order.status == 'بانتظار عروض الفنيين')
-                          FilledButton.icon(
-                            icon: const Icon(Icons.local_offer),
-                            label: Text('قبول الطلب وتقديم عرض (${order.price} ج.م)'),
-                            onPressed: () {
-                              setState(() {
-                                order.status = 'جاري التنفيذ (بانتظار كود PIN من العميل)';
-                                order.technicianName = 'م. مصطفى السيد (فني معتمد)';
-                              });
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('تم قبول المهمة! توجه للعميل واطلب كود الأمان PIN.')),
-                              );
-                            },
-                          ),
-                        if (order.status.contains('جاري التنفيذ'))
-                          FilledButton.icon(
-                            style: FilledButton.styleFrom(backgroundColor: Colors.green.shade700),
-                            icon: const Icon(Icons.lock_open),
-                            label: Text('تأكيد كود الأمان المنزلي (${order.pinCode}) وإتمام الصيانة'),
-                            onPressed: () {
-                              setState(() {
-                                order.status = 'مكتمل ومضمون';
-                                _techWallet -= (order.price * 0.15);
-                              });
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content: Text('تم التحقق من كود الأمان PIN وإصدار شهادة الضمان للعميل!')),
-                              );
-                            },
-                          ),
-                        OutlinedButton.icon(
-                          icon: const Icon(Icons.verified_user),
-                          label: const Text('معاينة شهادة الضمان والـ QR'),
-                          onPressed: () => _showWarrantyCertificateDialog(order),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            )),
       ],
     );
   }
 
-  // 3. بوابة الشركات B2B (شاشة مستقلة بالكامل)
-  Widget _buildB2BPortalHome() {
+  Widget _serviceCard(String name, IconData icon, Color color, String price) {
+    return InkWell(
+      onTap: () => _showOrderDialog(name, price),
+      child: Container(
+        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey.shade200)),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: color, size: 30),
+            const SizedBox(height: 6),
+            Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+            Text('$price ج.م', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTechnicianHome() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(colors: [Color(0xFF4C1D95), Color(0xFF7C3AED)]),
-            borderRadius: BorderRadius.circular(18),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('بوابة عقود صيانة الشركات والمؤسسات (B2B)',
-                  style: TextStyle(color: Colors.white, fontSize: 21, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 6),
-              const Text('إدارة مركزية لصيانة الفروع، الصيدليات، المطاعم، العيادات، والمجمعات السكنية بفواتير ضريبية رسمية.',
-                  style: TextStyle(color: Colors.white70, fontSize: 14)),
-              const SizedBox(height: 16),
-              FilledButton.icon(
-                style: FilledButton.styleFrom(backgroundColor: Colors.amber.shade700),
-                icon: const Icon(Icons.add_business),
-                label: const Text('إضافة عقد صيانة شركة / فرع جديد'),
-                onPressed: () {
-                  setState(() {
-                    _b2bContracts.insert(0, {
-                      'company': 'شركة جديدة - فرع $_selectedCity',
-                      'plan': 'باقة الصيانة الوقائية الشاملة (تكييف + كهرباء + سباكة)',
-                      'visitsLeft': 24,
-                      'monthlyFee': 3800,
-                      'status': 'ساري ومفعل فوراً',
-                    });
-                  });
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('تم تفعيل عقد الصيانة السنوي للشركة بنجاح!')),
-                  );
-                },
-              ),
-            ],
+        Card(
+          color: Colors.blue.shade800,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('بوابة الفنيين - رادار الطلبات', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                Text('رصيد المحفظة: ${_techWallet.toInt()} ج.م • عمولة المنصة: 15%', style: const TextStyle(color: Colors.white70)),
+              ],
+            ),
           ),
         ),
-        const SizedBox(height: 20),
-        const Text('العقود السنوية النشطة للشركات والفروع:',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 12),
+        ..._orders.map((o) => Card(
+          child: ListTile(
+            title: Text('${o.category} - ${o.id}', style: const TextStyle(fontWeight: FontWeight.bold)),
+            subtitle: Text('المدينة: ${o.city} | السعر: ${o.price} ج.م | PIN: ${o.pinCode}'),
+            trailing: FilledButton(
+              onPressed: () {
+                setState(() => o.status = 'جاري التنفيذ');
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('✅ تم قبول الطلب بنجاح!')));
+              },
+              child: const Text('قبول'),
+            ),
+          ),
+        )),
+      ],
+    );
+  }
+
+  Widget _buildB2BHome() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Card(
+          color: Colors.deepPurple,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('بوابة الشركات والمؤسسات B2B', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                const Text('إدارة صيانة الفروع والعقود السنوية', style: TextStyle(color: Colors.white70)),
+              ],
+            ),
+          ),
+        ),
         const SizedBox(height: 12),
         ..._b2bContracts.map((c) => Card(
-              margin: const EdgeInsets.only(bottom: 12),
-              child: ListTile(
-                leading: const CircleAvatar(
-                  backgroundColor: Color(0xFFEDE9FE),
-                  child: Icon(Icons.domain_verification, color: Color(0xFF6D28D9)),
-                ),
-                title: Text(c['company'] as String, style: const TextStyle(fontWeight: FontWeight.bold)),
-                subtitle: Text('${c['plan']} • الزيارات المتبقية: ${c['visitsLeft']} زيارة'),
-                trailing: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text('${c['monthlyFee']} ج.م / شهرياً',
-                        style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF6D28D9))),
-                    Text(c['status'] as String, style: const TextStyle(color: Colors.green, fontSize: 12)),
-                  ],
-                ),
-              ),
-            )),
-      ],
-    );
-  }
-
-  // 4. بوابة إدارة KHADAMATY (شاشة المدير العام المستقلة بالكامل)
-  Widget _buildAdminPortalHome() {
-    final totalRevenue = _orders.fold<int>(0, (sum, item) => sum + item.price);
-    final platformCommission = (totalRevenue * 0.15).toInt();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(colors: [Color(0xFF7F1D1D), Color(0xFFDC2626)]),
-            borderRadius: BorderRadius.circular(18),
+          child: ListTile(
+            title: Text(c['company'], style: const TextStyle(fontWeight: FontWeight.bold)),
+            subtitle: Text('${c['plan']} | الزيارات المتبقية: ${c['visitsLeft']}'),
+            trailing: Text('${c['monthlyFee']} ج.م', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.deepPurple)),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('لوحة تحكم المالك والمدير العام (Super Admin)',
-                  style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 6),
-              const Text('مراقبة حية لكافة العمليات، أرباح المنصة، وتوثيق البطاقات الشخصية والفيش الجنائي للفنيين.',
-                  style: TextStyle(color: Colors.white70)),
-              const SizedBox(height: 18),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _statBox('إجمالي المبيعات', '$totalRevenue ج.م', Colors.white),
-                  _statBox('صافي عمولة المنصة (15%)', '$platformCommission ج.م', Colors.amberAccent),
-                  _statBox('عقود الشركات B2B', '${_b2bContracts.length} عقود', Colors.greenAccent),
-                ],
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 20),
-        const Text('طلبات توثيق الفنيين الجدد (مراجعة الرقم القومي والفيش الجنائي):',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 10),
-        ..._pendingTechnicians.map((tech) {
-          final bool isApproved = tech['approved'] as bool;
-          return Card(
-            margin: const EdgeInsets.only(bottom: 12),
-            child: ListTile(
-              leading: CircleAvatar(
-                backgroundColor: isApproved ? Colors.green.shade100 : Colors.amber.shade100,
-                child: Icon(isApproved ? Icons.verified : Icons.pending_actions,
-                    color: isApproved ? Colors.green : Colors.amber.shade900),
-              ),
-              title: Text('${tech['name']} - ${tech['specialty']} (${tech['city']})',
-                  style: const TextStyle(fontWeight: FontWeight.bold)),
-              subtitle: Text('الرقم القومي: ${tech['nationalId']} • ${tech['criminalRecord']}'),
-              trailing: isApproved
-                  ? const Chip(label: Text('معتمد وموثق'), backgroundColor: Color(0xFFDCFCE7))
-                  : FilledButton(
-                      onPressed: () {
-                        setState(() => tech['approved'] = true);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('تم توثيق وتفعيل حساب الفني ${tech['name']} بنجاح!')),
-                        );
-                      },
-                      child: const Text('اعتماد وتوثيق الفني'),
-                    ),
-            ),
-          );
-        }),
+        )),
       ],
     );
   }
 
-  Widget _buildOrdersAndWarrantyTab() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        const Text('سجل الطلبات وشهادات الضمان الرقمية (QR):',
-            style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 12),
-        ..._orders.map((order) => Card(
-              margin: const EdgeInsets.only(bottom: 12),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('طلب #${order.id} - ${order.category}',
-                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                        Chip(label: Text(order.status)),
-                      ],
-                    ),
-                    Text(order.description),
-                    const SizedBox(height: 8),
-                    Text('كود الأمان المنزلي PIN: ${order.pinCode} • الفني: ${order.technicianName}',
-                        style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF0F766E))),
-                    Text('القيمة: ${order.price} ج.م • الضمان ساري حتى: ${order.warrantyEnd}'),
-                    const SizedBox(height: 10),
-                    Row(
-                      children: [
-                        FilledButton.icon(
-                          icon: const Icon(Icons.verified_user),
-                          label: const Text('فتح شهادة الضمان الرسمية'),
-                          onPressed: () => _showWarrantyCertificateDialog(order),
-                        ),
-                        const SizedBox(width: 10),
-                        OutlinedButton.icon(
-                          icon: const Icon(Icons.qr_code),
-                          label: const Text('رمز الضمان QR'),
-                          onPressed: () => _showQrModal(
-                            'شهادة ضمان رقم #${order.id}',
-                            'KHADAMATY-ORDER:${order.id}-PIN:${order.pinCode}-WARRANTY:${order.warrantyEnd}',
-                            'صالح حتى ${order.warrantyEnd} - الفني: ${order.technicianName}',
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            )),
-      ],
-    );
-  }
-
-  Widget _buildMessagesAndSupportTab() {
+  Widget _buildAdminHome() {
     return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
+      color: Colors.red.shade900,
+      child: const Padding(
+        padding: EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('مركز الرسائل الفورية وخدمة عملاء خدماتي 24/7',
-                style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 12),
-            const ListTile(
-              leading: CircleAvatar(child: Icon(Icons.handyman)),
-              title: Text('م. مصطفى السيد (فني معتمد)'),
-              subtitle: Text('أنا في الطريق إليك الآن، يرجى تجهيز كود الأمان المنزلي PIN.'),
-              trailing: Chip(label: Text('متصل الآن'), backgroundColor: Color(0xFFDCFCE7)),
-            ),
-            const Divider(),
-            ListTile(
-              leading: const CircleAvatar(backgroundColor: Colors.green, child: Icon(Icons.support_agent, color: Colors.white)),
-              title: const Text('الدعم الفني الرسمي وضمان الـ 30 يوماً'),
-              subtitle: const Text('تواصل مباشر لحل أي شكوى أو استبدال الفني فوراً مجاناً'),
-              trailing: FilledButton(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('تم إرسال رسالتك لفريق الدعم الفوري في خدماتي!')),
-                  );
-                },
-                child: const Text('بدء محادثة فورية'),
-              ),
-            ),
+            Text('لوحة تحكم المدير العام (Super Admin)', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+            SizedBox(height: 6),
+            Text('مراقبة الأرباح، توثيق الفنيين، وإدارة كامل المنصة.', style: TextStyle(color: Colors.white70)),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildWalletAndQrTab() {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            const Icon(Icons.account_balance_wallet, size: 54, color: Color(0xFF0F766E)),
-            const SizedBox(height: 10),
-            Text('رصيد محفظة العميل: ${_customerWallet.toInt()} ج.م',
-                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            Text('رصيد محفظة الفني: ${_techWallet.toInt()} ج.م',
-                style: const TextStyle(fontSize: 16, color: Colors.blueGrey)),
-            const SizedBox(height: 16),
-            Wrap(
-              spacing: 12,
+  Widget _buildOrdersTab() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const Text('سجل الطلبات والضمان:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 10),
+        ..._orders.map((o) => Card(
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                FilledButton.icon(
-                  icon: const Icon(Icons.add_card),
-                  label: const Text('شحن رصيد العميل (+100 ج.م)'),
-                  onPressed: () => setState(() => _customerWallet += 100),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('${o.category} (#${o.id})', style: const TextStyle(fontWeight: FontWeight.bold)),
+                    Chip(label: Text(o.status)),
+                  ],
                 ),
-                OutlinedButton.icon(
-                  icon: const Icon(Icons.qr_code_scanner),
-                  label: const Text('إظهار QR مشاركة التطبيق'),
-                  onPressed: () => _showQrModal(
-                    'مشاركة تطبيق خدماتي KHADAMATY',
-                    'https://khadamaty.mahfouzalagamy.workers.dev',
-                    'امسح الكود بكاميرا الموبايل لفتح التطبيق فوراً',
-                  ),
-                ),
+                Text('كود الأمان المنزلي PIN: ${o.pinCode}'),
+                Text('ضمان ذهبي حتى: ${o.warrantyEnd}'),
               ],
             ),
+          ),
+        )),
+      ],
+    );
+  }
+
+  Widget _buildSupportTab() {
+    return const Card(
+      child: Padding(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('مركز الدعم الفني 24/7', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            SizedBox(height: 8),
+            Text('تواصل مباشر مع فريق الدعم الفني عبر الخط الساخن 19999 أو واتساب.'),
           ],
         ),
       ),
     );
   }
 
-  Widget _quickActionButton(IconData icon, String label, Color color, VoidCallback onTap) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
+  Widget _buildWalletTab() {
+    return Card(
       child: Padding(
-        padding: const EdgeInsets.all(6),
+        padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            CircleAvatar(
-              radius: 22,
-              backgroundColor: color.withOpacity(0.12),
-              child: Icon(icon, color: color, size: 22),
+            const Icon(Icons.account_balance_wallet, size: 40, color: Color(0xFF0F766E)),
+            const SizedBox(height: 8),
+            Text('رصيد محفظة العميل: ${_customerWallet.toInt()} ج.م', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
+            FilledButton(
+              onPressed: () => setState(() => _customerWallet += 100),
+              child: const Text('شحن رصيد العميل (+100 ج.م)'),
             ),
-            const SizedBox(height: 6),
-            Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _statBox(String label, String value, Color color) {
-    return Column(
-      children: [
-        Text(value, style: TextStyle(color: color, fontSize: 18, fontWeight: FontWeight.w900)),
-        const SizedBox(height: 4),
-        Text(label, style: const TextStyle(color: Colors.white70, fontSize: 12)),
-      ],
-    );
-  }
-
-  Widget _buildBottomNavigationBar() {
-    return NavigationBar(
-      selectedIndex: _bottomTab,
-      onDestinationSelected: (idx) => setState(() => _bottomTab = idx),
-      destinations: [
-        const NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: 'الرئيسية'),
-        NavigationDestination(
-          icon: Badge(label: Text('${_orders.length}'), child: const Icon(Icons.verified_outlined)),
-          selectedIcon: const Icon(Icons.verified),
-          label: 'طلباتي والضمان',
-        ),
-        const NavigationDestination(icon: Icon(Icons.chat_bubble_outline), selectedIcon: Icon(Icons.chat_bubble), label: 'الرسائل والدعم'),
-        const NavigationDestination(icon: Icon(Icons.account_balance_wallet_outlined), selectedIcon: Icon(Icons.account_balance_wallet), label: 'محفظتي و QR'),
-      ],
     );
   }
 }
