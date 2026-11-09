@@ -1,0 +1,100 @@
+name: Build KHADAMATY (Android + iOS IPA + Live Free Website)
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  # 1. بناء تطبيق الأندرويد (APK + PlayStore AAB) والموقع الإلكتروني (Web PWA) ونشره مجاناً
+  build-android-and-web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Build KHADAMATY Android (APK & AAB) & Official Website
+        run: |
+          flutter create --org com.mahfouzalagamy.khadamaty --project-name khadamaty_app --platforms android,web build_app
+          cp mobile_app/pubspec.yaml build_app/pubspec.yaml
+          cp mobile_app/lib/main.dart build_app/lib/main.dart
+          rm -rf build_app/test
+          cd build_app
+          flutter pub get
+          flutter build apk --release --no-tree-shake-icons
+          flutter build appbundle --release --no-tree-shake-icons
+          flutter build web --release --base-href "/KHADAMATY/" --no-tree-shake-icons
+          cp build/web/index.html build/web/404.html
+          touch build/web/.nojekyll
+
+      - name: Upload KHADAMATY Android APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: khadamaty-egypt-apk
+          path: build_app/build/app/outputs/flutter-apk/app-release.apk
+
+      - name: Upload KHADAMATY Google Play Bundle (AAB)
+        uses: actions/upload-artifact@v4
+        with:
+          name: khadamaty-playstore-aab
+          path: build_app/build/app/outputs/bundle/release/app-release.aab
+
+      - name: Publish Official Website to GitHub Pages (gh-pages branch)
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./build_app/build/web
+          force_orphan: true
+
+  # 2. بناء ملف الآيفون (iOS IPA) على خوادم macOS السحابية
+  build-ios-ipa:
+    runs-on: macos-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter on macOS
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Build KHADAMATY iOS App & Package Unsigned IPA
+        run: |
+          flutter create --org com.mahfouzalagamy.khadamaty --project-name khadamaty_app --platforms ios build_ios
+          cp mobile_app/pubspec.yaml build_ios/pubspec.yaml
+          cp mobile_app/lib/main.dart build_ios/lib/main.dart
+          rm -rf build_ios/test
+          cd build_ios
+          flutter pub get
+          flutter build ios --release --no-codesign --no-tree-shake-icons
+          mkdir -p Payload
+          cp -r build/ios/iphoneos/Runner.app Payload/
+          zip -r -y khadamaty-ios-unsigned.ipa Payload
+
+      - name: Upload KHADAMATY iOS IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: khadamaty-ios-ipa
+          path: build_ios/khadamaty-ios-unsigned.ipa
