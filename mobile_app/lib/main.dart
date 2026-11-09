@@ -989,7 +989,7 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
                 style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
             ListTile(
-              leading: const CircleAvatar(child: Icon(Icons.Engineering)),
+              leading: const CircleAvatar(child: Icon(Icons.engineering)),
               title: const Text('م. مصطفى السيد (فني معتمد)'),
               subtitle: const Text('أنا في الطريق إليك الآن، يرجى تجهيز كود الأمان المنزلي PIN.'),
               trailing: IconButton(
