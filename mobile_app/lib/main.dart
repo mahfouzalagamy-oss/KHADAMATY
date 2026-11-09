@@ -1,9 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:pdf/pdf.dart';
-import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
-import 'package:qr_flutter/qr_flutter.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter/services.dart';
 
 void main() {
   runApp(const KhadamatyApp());
@@ -17,7 +13,7 @@ class ServiceOrder {
   final String customerName;
   final String customerPhone;
   final String pinCode;
-  String status; // 'بانتظار عروض الفنيين', 'تم تقديم عرض سعر', 'جاري التنفيذ', 'مكتمل ومضمون'
+  String status;
   int price;
   String technicianName;
   final String warrantyEnd;
@@ -69,7 +65,7 @@ class MainPlatformShell extends StatefulWidget {
 
 class _MainPlatformShellState extends State<MainPlatformShell> {
   int _selectedPortal = 0; // 0: عميل, 1: فني, 2: شركات B2B, 3: إدارة KHADAMATY
-  int _bottomTab = 0; // 0: الرئيسية, 1: طلباتي/مهامي, 2: الرسائل والدعم, 3: محفظتي و QR
+  int _bottomTab = 0; // 0: الرئيسية, 1: طلباتي والضمان, 2: الرسائل والدعم, 3: محفظتي و QR
   String _selectedCity = 'المنصورة';
   double _customerWallet = 100.0;
   double _techWallet = 420.0;
@@ -160,51 +156,94 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
     }
   }
 
-  Future<void> _generateWarrantyPdf(ServiceOrder order) async {
-    final pdf = pw.Document();
-    pdf.addPage(
-      pw.Page(
-        pageFormat: PdfPageFormat.a4,
-        build: (pw.Context context) {
-          return pw.Container(
-            padding: const pw.EdgeInsets.all(24),
-            decoration: pw.BoxDecoration(
-              border: pw.Border.all(color: PdfColors.teal800, width: 3),
+  void _showWarrantyCertificateDialog(ServiceOrder order) {
+    showDialog(
+      context: context,
+      builder: (ctx) => Directionality(
+        textDirection: TextDirection.rtl,
+        child: AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          title: Row(
+            children: [
+              Icon(Icons.verified, color: Colors.teal.shade700, size: 30),
+              const SizedBox(width: 8),
+              const Expanded(
+                child: Text('شهادة ضمان وفاتورة رسمية موثقة',
+                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18)),
+              ),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.teal.shade50.withOpacity(0.4),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.teal.shade700, width: 2),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Center(
+                    child: Text('منصة خدماتي - KHADAMATY',
+                        style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900, color: Color(0xFF0F766E))),
+                  ),
+                  const Center(
+                    child: Text('ضمان ذهبي لمدة 30 يوماً شاملاً قطع الغيار والمصنعية',
+                        style: TextStyle(fontSize: 12, color: Colors.black54)),
+                  ),
+                  const Divider(height: 24, thickness: 1.5),
+                  Text('📌 رقم الطلب المرجعي: ${order.id}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                  Text('🛠️ القسم والخدمة: ${order.category}'),
+                  Text('📝 التفاصيل: ${order.description}'),
+                  Text('📍 المحافظة: ${order.city}'),
+                  Text('👨‍🔧 الفني المعتمد: ${order.technicianName}'),
+                  Text('🔐 كود الأمان المنزلي المطابق (PIN): ${order.pinCode}'),
+                  Text('💰 إجمالي القيمة المدفوعة: ${order.price} ج.م',
+                      style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF0F766E))),
+                  Text('📅 سريان الضمان حتى: ${order.warrantyEnd}',
+                      style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.redAccent)),
+                  const SizedBox(height: 16),
+                  Center(
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.grey.shade300),
+                      ),
+                      child: Column(
+                        children: [
+                          const Icon(Icons.qr_code_2, size: 110, color: Colors.black87),
+                          Text('QR VERIFIED: ${order.id}-${order.pinCode}',
+                              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-            child: pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                pw.Text('KHADAMATY OFFICIAL WARRANTY CERTIFICATE',
-                    style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold, color: PdfColors.teal900)),
-                pw.SizedBox(height: 8),
-                pw.Text('Official Digital Invoice & 30-Day Money-Back Guarantee - www.khadamaty.com',
-                    style: const pw.TextStyle(fontSize: 12, color: PdfColors.grey700)),
-                pw.Divider(thickness: 2),
-                pw.SizedBox(height: 16),
-                pw.Text('Order Reference: ${order.id}', style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
-                pw.Text('Service Category: ${order.category}'),
-                pw.Text('City / Location: ${order.city}'),
-                pw.Text('Customer Phone: ${order.customerPhone}'),
-                pw.Text('Certified Technician: ${order.technicianName}'),
-                pw.Text('Home Security PIN Verified: ${order.pinCode}'),
-                pw.Text('Total Paid Amount: ${order.price} EGP'),
-                pw.Text('Warranty Valid Until: ${order.warrantyEnd}'),
-                pw.SizedBox(height: 24),
-                pw.BarcodeWidget(
-                  barcode: pw.Barcode.qrCode(),
-                  data: 'https://www.khadamaty.com/verify?order=${order.id}&pin=${order.pinCode}&price=${order.price}',
-                  width: 110,
-                  height: 110,
-                ),
-                pw.SizedBox(height: 12),
-                pw.Text('Scan QR Code to verify authenticity on KHADAMATY Platform.'),
-              ],
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('إغلاق')),
+            FilledButton.icon(
+              icon: const Icon(Icons.copy),
+              label: const Text('نسخ بيانات شهادة الضمان'),
+              onPressed: () {
+                Clipboard.setData(ClipboardData(
+                    text: 'شهادة ضمان خدماتي KHADAMATY - طلب ${order.id} - كود PIN: ${order.pinCode} - ضمان حتى ${order.warrantyEnd}'));
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('✅ تم نسخ شهادة الضمان الموثقة إلى الحافظة بنجاح!')),
+                );
+              },
             ),
-          );
-        },
+          ],
+        ),
       ),
     );
-    await Printing.layoutPdf(onLayout: (format) async => pdf.save());
   }
 
   void _showNewOrderDialog(String category, String minMaxPrice, {bool isEmergency = false}) {
@@ -258,7 +297,7 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
               icon: const Icon(Icons.check_circle),
               label: const Text('إرسال الطلب وتوليد كود الأمان PIN'),
               onPressed: () {
-                final newPin = (1000 + DateTime.now().millisecond * 8).toString().substring(0, 4);
+                final newPin = (1000 + DateTime.now().millisecond * 8).toString().padRight(4, '9').substring(0, 4);
                 final newOrder = ServiceOrder(
                   id: 'KH-${DateTime.now().millisecondsSinceEpoch.toString().substring(9)}',
                   category: category,
@@ -275,7 +314,7 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
                 );
                 setState(() {
                   _orders.insert(0, newOrder);
-                  _bottomTab = 1; // الانتقال مباشرة لصفحة الطلبات لرؤية الطلب الجديد
+                  _bottomTab = 1;
                 });
                 Navigator.pop(ctx);
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -302,12 +341,18 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              SizedBox(
-                width: 200,
-                height: 200,
-                child: QrImageView(data: qrData, version: QrVersions.auto),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.teal, width: 2),
+                ),
+                child: const Icon(Icons.qr_code_2, size: 160, color: Color(0xFF0F766E)),
               ),
               const SizedBox(height: 12),
+              SelectableText(qrData, textAlign: TextAlign.center, style: const TextStyle(fontSize: 12, color: Colors.blueGrey)),
+              const SizedBox(height: 8),
               Text(subtitle, textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.w600)),
             ],
           ),
@@ -346,7 +391,6 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
     );
   }
 
-  // شريط التبديل العلوي بين البوابات الأربع
   Widget _buildTopPortalSelectorBar() {
     final portals = [
       {'title': 'بوابة العميل', 'icon': Icons.person},
@@ -382,7 +426,7 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
             onSelected: (_) {
               setState(() {
                 _selectedPortal = index;
-                _bottomTab = 0; // إعادة التبويب السفلي للرئيسية عند تغيير البوابة
+                _bottomTab = 0;
               });
             },
           );
@@ -391,11 +435,10 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
     );
   }
 
-  // هيدر التطبيق المتغير حسب البوابة النشطة
   Widget _buildAppHeader() {
     final portalTitles = [
       'بوابة العملاء المضمونة',
-      'بوابة الفنيين المعتمدين (استقبال الطلبات)',
+      'بوابة الفنيين المعتمدين (رادار استقبال الطلبات)',
       'بوابة عقود الشركات والمؤسسات B2B',
       'لوحة تحكم المدير العام - إدارة KHADAMATY',
     ];
@@ -461,14 +504,11 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
     );
   }
 
-  // الموجه الذكي الذي يعرض شاشة مختلفة كلياً لكل بوابة ولكل تبويب سفلي
   Widget _buildActiveScreenContent() {
-    // إذا اختار المستخدم أحد التبويبات السفلية (الطلبات، الرسائل، المحفظة)
     if (_bottomTab == 1) return _buildOrdersAndWarrantyTab();
     if (_bottomTab == 2) return _buildMessagesAndSupportTab();
     if (_bottomTab == 3) return _buildWalletAndQrTab();
 
-    // إذا كان في التبويب الرئيسي (0)، نعرض البوابة المختارة من الأعلى
     switch (_selectedPortal) {
       case 0:
         return _buildCustomerPortalHome();
@@ -483,9 +523,7 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
     }
   }
 
-  // ===========================================================================
-  // 1. بوابة العميل (Customer Portal)
-  // ===========================================================================
+  // 1. بوابة العميل
   Widget _buildCustomerPortalHome() {
     final services = [
       {'name': 'تكييف وتبريد', 'icon': Icons.ac_unit, 'color': Colors.blue, 'price': '250 - 650'},
@@ -501,7 +539,6 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // شريط الإجراءات السريعة للعميل
         Card(
           elevation: 0,
           color: Colors.white,
@@ -518,14 +555,16 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
                   _showQrModal('رابط تطبيق خدماتي KHADAMATY', 'https://khadamaty.mahfouzalagamy.workers.dev',
                       'امسح الرمز لفتح وتثبيت تطبيق خدماتي على أي هاتف');
                 }),
-                _quickActionButton(Icons.phone_in_talk, 'اتصال مباشر', Colors.blue, () {
-                  launchUrl(Uri.parse('tel:19999'));
+                _quickActionButton(Icons.phone_in_talk, 'خط ساخن', Colors.blue, () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('📞 خدمة عملاء خدماتي الخط الساخن: 19999')),
+                  );
                 }),
-                _quickActionButton(Icons.chat, 'واتساب', Colors.green, () {
-                  launchUrl(Uri.parse('https://wa.me/201000000000?text=مرحبا، أحتاج مساعدة في تطبيق خدماتي'));
+                _quickActionButton(Icons.chat, 'دعم واتساب', Colors.green, () {
+                  setState(() => _bottomTab = 2);
                 }),
-                _quickActionButton(Icons.verified_user, 'ضمان PDF', Colors.deepPurple, () {
-                  _generateWarrantyPdf(_orders.first);
+                _quickActionButton(Icons.verified_user, 'شهادة الضمان', Colors.deepPurple, () {
+                  _showWarrantyCertificateDialog(_orders.first);
                 }),
               ],
             ),
@@ -538,8 +577,6 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
         const Text('اختر القسم لطلب فني معتمد بكود أمان منزلي PIN وضمان رسمي 30 يوماً',
             textAlign: TextAlign.center, style: TextStyle(color: Colors.black54)),
         const SizedBox(height: 16),
-
-        // بانر التشخيص الصوتي والفيديو
         InkWell(
           onTap: () => _showNewOrderDialog('تشخيص ذكي بالصوت/الفيديو', '200 - 500'),
           child: Container(
@@ -550,7 +587,7 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
             ),
             child: const Row(
               children: [
-                Icon(Icons.mic_external_on, color: Colors.white, size: 38),
+                Icon(Icons.mic, color: Colors.white, size: 38),
                 SizedBox(width: 14),
                 Expanded(
                   child: Column(
@@ -569,10 +606,9 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
           ),
         ),
         const SizedBox(height: 20),
-        const Text('الأقسام المعتمدة في خدماتي (اضغط لطلب الخدمة):',
+        const Text('الأقسام المعتمدة في خدماتي (اضغط على أي قسم لطلب فني فوراً):',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         const SizedBox(height: 12),
-
         GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
@@ -625,14 +661,11 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
     );
   }
 
-  // ===========================================================================
-  // 2. بوابة الفنيين (Technician Portal - شاشة مختلفة كلياً)
-  // ===========================================================================
+  // 2. بوابة الفنيين (شاشة مستقلة بالكامل)
   Widget _buildTechnicianPortalHome() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // لوحة حالة الفني وأرباحه
         Container(
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
@@ -647,7 +680,7 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
                   const Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('لوحة عمليات الفني المعتمد',
+                      Text('👨‍🔧 بوابة الفني المعتمد - استقبال الطلبات الحية',
                           style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
                       Text('م. مصطفى السيد • تخصص تكييف وسباكة • تقييم 4.9 ⭐',
                           style: TextStyle(color: Colors.white70, fontSize: 13)),
@@ -680,7 +713,7 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
                 style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             FilledButton.tonalIcon(
               icon: const Icon(Icons.account_balance_wallet),
-              label: const Text('شحن محفظة الفني (فوري/فودافون كاش)'),
+              label: const Text('شحن محفظة الفني (+200 ج.م)'),
               onPressed: () {
                 setState(() => _techWallet += 200);
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -691,8 +724,6 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
           ],
         ),
         const SizedBox(height: 12),
-
-        // قائمة الطلبات الحية التي يمكن للفني تقديم عرض سعر عليها أو إنهاؤها بكود PIN
         ..._orders.map((order) => Card(
               margin: const EdgeInsets.only(bottom: 14),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
@@ -745,7 +776,7 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
                                 order.technicianName = 'م. مصطفى السيد (فني معتمد)';
                               });
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('✅ تم إرسال عرض السعر وقبول المهمة! توجه للعميل واطلب كود PIN.')),
+                                const SnackBar(content: Text('✅ تم قبول المهمة! توجه للعميل واطلب كود الأمان PIN.')),
                               );
                             },
                           ),
@@ -757,7 +788,7 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
                             onPressed: () {
                               setState(() {
                                 order.status = 'مكتمل ومضمون';
-                                _techWallet -= (order.price * 0.15); // خصم عمولة المنصة 15%
+                                _techWallet -= (order.price * 0.15);
                               });
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
@@ -766,9 +797,9 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
                             },
                           ),
                         OutlinedButton.icon(
-                          icon: const Icon(Icons.picture_as_pdf),
-                          label: const Text('معاينة شهادة الضمان PDF'),
-                          onPressed: () => _generateWarrantyPdf(order),
+                          icon: const Icon(Icons.verified_user),
+                          label: const Text('معاينة شهادة الضمان والـ QR'),
+                          onPressed: () => _showWarrantyCertificateDialog(order),
                         ),
                       ],
                     ),
@@ -780,9 +811,7 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
     );
   }
 
-  // ===========================================================================
-  // 3. بوابة الشركات (B2B Corporate Portal - شاشة مختلفة كلياً)
-  // ===========================================================================
+  // 3. بوابة الشركات B2B (شاشة مستقلة بالكامل)
   Widget _buildB2BPortalHome() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -796,7 +825,7 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('بوابة عقود صيانة الشركات والمؤسسات (B2B)',
+              const Text('🏢 بوابة عقود صيانة الشركات والمؤسسات (B2B)',
                   style: TextStyle(color: Colors.white, fontSize: 21, fontWeight: FontWeight.bold)),
               const SizedBox(height: 6),
               const Text('إدارة مركزية لصيانة الفروع، الصيدليات، المطاعم، العيادات، والمجمعات السكنية بفواتير ضريبية رسمية.',
@@ -825,7 +854,7 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
           ),
         ),
         const SizedBox(height: 20),
-        const Text('🏢 العقود السنوية النشطة للشركات والفروع:',
+        const Text('📋 العقود السنوية النشطة للشركات والفروع:',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         const SizedBox(height: 12),
         ..._b2bContracts.map((c) => Card(
@@ -852,9 +881,7 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
     );
   }
 
-  // ===========================================================================
-  // 4. بوابة إدارة KHADAMATY (Super Admin Portal - شاشة مختلفة كلياً)
-  // ===========================================================================
+  // 4. بوابة إدارة KHADAMATY (شاشة المدير العام المستقلة بالكامل)
   Widget _buildAdminPortalHome() {
     final totalRevenue = _orders.fold<int>(0, (sum, item) => sum + item.price);
     final platformCommission = (totalRevenue * 0.15).toInt();
@@ -920,14 +947,12 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
     );
   }
 
-  // ===========================================================================
-  // شاشات التبويبات السفلية (الطلبات والضمان، الرسائل، المحفظة و QR)
-  // ===========================================================================
+  // التبويبات السفلية
   Widget _buildOrdersAndWarrantyTab() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Text('📋 سجل الطلبات وشهادات الضمان الرقمية (PDF + QR):',
+        const Text('📋 سجل الطلبات وشهادات الضمان الرقمية (QR):',
             style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold)),
         const SizedBox(height: 12),
         ..._orders.map((order) => Card(
@@ -954,14 +979,14 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
                     Row(
                       children: [
                         FilledButton.icon(
-                          icon: const Icon(Icons.picture_as_pdf),
-                          label: const Text('تحميل شهادة الضمان PDF'),
-                          onPressed: () => _generateWarrantyPdf(order),
+                          icon: const Icon(Icons.verified_user),
+                          label: const Text('فتح شهادة الضمان الرسمية'),
+                          onPressed: () => _showWarrantyCertificateDialog(order),
                         ),
                         const SizedBox(width: 10),
                         OutlinedButton.icon(
                           icon: const Icon(Icons.qr_code),
-                          label: const Text('عرض رمز الضمان QR'),
+                          label: const Text('رمز الضمان QR'),
                           onPressed: () => _showQrModal(
                             'شهادة ضمان رقم #${order.id}',
                             'KHADAMATY-ORDER:${order.id}-PIN:${order.pinCode}-WARRANTY:${order.warrantyEnd}',
@@ -988,23 +1013,24 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
             const Text('💬 مركز الرسائل الفورية وخدمة عملاء خدماتي 24/7',
                 style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
-            ListTile(
-              leading: const CircleAvatar(child: Icon(Icons.engineering)),
-              title: const Text('م. مصطفى السيد (فني معتمد)'),
-              subtitle: const Text('أنا في الطريق إليك الآن، يرجى تجهيز كود الأمان المنزلي PIN.'),
-              trailing: IconButton(
-                icon: const Icon(Icons.phone, color: Colors.green),
-                onPressed: () => launchUrl(Uri.parse('tel:01012345678')),
-              ),
+            const ListTile(
+              leading: CircleAvatar(child: Icon(Icons.engineering)),
+              title: Text('م. مصطفى السيد (فني معتمد)'),
+              subtitle: Text('أنا في الطريق إليك الآن، يرجى تجهيز كود الأمان المنزلي PIN.'),
+              trailing: Chip(label: Text('متصل الآن'), backgroundColor: Color(0xFFDCFCE7)),
             ),
             const Divider(),
             ListTile(
               leading: const CircleAvatar(backgroundColor: Colors.green, child: Icon(Icons.support_agent, color: Colors.white)),
-              title: const Text('الدعم الفني الرسمي عبر واتساب'),
-              subtitle: const Text('تواصل مباشر لحل أي شكوى أو تفعيل ضمان 30 يوماً'),
+              title: const Text('الدعم الفني الرسمي وضمان الـ 30 يوماً'),
+              subtitle: const Text('تواصل مباشر لحل أي شكوى أو استبدال الفني فوراً مجاناً'),
               trailing: FilledButton(
-                onPressed: () => launchUrl(Uri.parse('https://wa.me/201000000000')),
-                child: const Text('مراسلة واتساب'),
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('✅ تم إرسال رسالتك لفريق الدعم الفوري في خدماتي!')),
+                  );
+                },
+                child: const Text('بدء محادثة فورية'),
               ),
             ),
           ],

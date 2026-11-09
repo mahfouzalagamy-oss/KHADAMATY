@@ -1,5 +1,5 @@
 name: khadamaty_app
-description: منصة خدماتي KHADAMATY - تطبيق وموقع الصيانة الذكي في مصر (Android, iOS & Web)
+description: KHADAMATY Official Maintenance Platform
 publish_to: 'none'
 version: 6.0.0+6
 
@@ -8,16 +8,6 @@ environment:
 
 dependencies:
   flutter:
-    sdk: flutter
-  flutter_localizations:
-    sdk: flutter
-  url_launcher: ^6.2.5
-  pdf: ^3.10.8
-  printing: ^5.12.0
-  barcode_widget: ^2.0.4
-
-dev_dependencies:
-  flutter_test:
     sdk: flutter
 
 flutter:
