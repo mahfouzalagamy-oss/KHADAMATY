@@ -45,7 +45,6 @@ class KhadamatyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
-        fontFamily: 'Segoe UI',
         colorSchemeSeed: const Color(0xFF0F766E),
       ),
       home: const Directionality(
@@ -144,13 +143,13 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
   Color get _portalPrimaryColor {
     switch (_selectedPortal) {
       case 0:
-        return const Color(0xFF0F766E); // أخضر زمردي للعميل
+        return const Color(0xFF0F766E);
       case 1:
-        return const Color(0xFF1D4ED8); // أزرق ملكي للفني
+        return const Color(0xFF1D4ED8);
       case 2:
-        return const Color(0xFF6D28D9); // بنفسجي للشركات B2B
+        return const Color(0xFF6D28D9);
       case 3:
-        return const Color(0xFFB91C1C); // أحمر داكن للإدارة العليا
+        return const Color(0xFFB91C1C);
       default:
         return const Color(0xFF0F766E);
     }
@@ -177,7 +176,7 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
             child: Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.teal.shade50.withOpacity(0.4),
+                color: Colors.teal.shade50,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: Colors.teal.shade700, width: 2),
               ),
@@ -194,15 +193,15 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
                         style: TextStyle(fontSize: 12, color: Colors.black54)),
                   ),
                   const Divider(height: 24, thickness: 1.5),
-                  Text('📌 رقم الطلب المرجعي: ${order.id}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                  Text('🛠️ القسم والخدمة: ${order.category}'),
-                  Text('📝 التفاصيل: ${order.description}'),
-                  Text('📍 المحافظة: ${order.city}'),
-                  Text('👨‍🔧 الفني المعتمد: ${order.technicianName}'),
-                  Text('🔐 كود الأمان المنزلي المطابق (PIN): ${order.pinCode}'),
-                  Text('💰 إجمالي القيمة المدفوعة: ${order.price} ج.م',
+                  Text('رقم الطلب المرجعي: ${order.id}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                  Text('القسم والخدمة: ${order.category}'),
+                  Text('التفاصيل: ${order.description}'),
+                  Text('المحافظة: ${order.city}'),
+                  Text('الفني المعتمد: ${order.technicianName}'),
+                  Text('كود الأمان المنزلي المطابق (PIN): ${order.pinCode}'),
+                  Text('إجمالي القيمة المدفوعة: ${order.price} ج.م',
                       style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF0F766E))),
-                  Text('📅 سريان الضمان حتى: ${order.warrantyEnd}',
+                  Text('سريان الضمان حتى: ${order.warrantyEnd}',
                       style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.redAccent)),
                   const SizedBox(height: 16),
                   Center(
@@ -215,7 +214,7 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
                       ),
                       child: Column(
                         children: [
-                          const Icon(Icons.qr_code_2, size: 110, color: Colors.black87),
+                          const Icon(Icons.qr_code_2, size: 100, color: Colors.black87),
                           Text('QR VERIFIED: ${order.id}-${order.pinCode}',
                               style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
                         ],
@@ -230,13 +229,13 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
             TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('إغلاق')),
             FilledButton.icon(
               icon: const Icon(Icons.copy),
-              label: const Text('نسخ بيانات شهادة الضمان'),
+              label: const Text('نسخ شهادة الضمان'),
               onPressed: () {
                 Clipboard.setData(ClipboardData(
                     text: 'شهادة ضمان خدماتي KHADAMATY - طلب ${order.id} - كود PIN: ${order.pinCode} - ضمان حتى ${order.warrantyEnd}'));
                 Navigator.pop(ctx);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('✅ تم نسخ شهادة الضمان الموثقة إلى الحافظة بنجاح!')),
+                  const SnackBar(content: Text('تم نسخ شهادة الضمان الموثقة إلى الحافظة بنجاح!')),
                 );
               },
             ),
@@ -255,7 +254,7 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
       builder: (ctx) => Directionality(
         textDirection: TextDirection.rtl,
         child: AlertDialog(
-          title: Text(isEmergency ? '🚨 طلب طوارئ عاجل (خلال 45 دقيقة) - $category' : 'طلب صيانة معتمد - $category'),
+          title: Text(isEmergency ? 'طلب طوارئ عاجل (خلال 45 دقيقة) - $category' : 'طلب صيانة معتمد - $category'),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -268,7 +267,7 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: Colors.amber.shade400),
                   ),
-                  child: Text('💡 مؤشر السعر العادل في $_selectedCity: $minMaxPrice ج.م (شامل الكشف والضمان 30 يوماً)'),
+                  child: Text('مؤشر السعر العادل في $_selectedCity: $minMaxPrice ج.م (شامل الكشف والضمان 30 يوماً)'),
                 ),
                 const SizedBox(height: 12),
                 TextField(
@@ -295,11 +294,11 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
             TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء')),
             FilledButton.icon(
               icon: const Icon(Icons.check_circle),
-              label: const Text('إرسال الطلب وتوليد كود الأمان PIN'),
+              label: const Text('إرسال الطلب وتوليد كود PIN'),
               onPressed: () {
-                final newPin = (1000 + DateTime.now().millisecond * 8).toString().padRight(4, '9').substring(0, 4);
+                final newPin = (1000 + (DateTime.now().millisecond % 8999)).toString();
                 final newOrder = ServiceOrder(
-                  id: 'KH-${DateTime.now().millisecondsSinceEpoch.toString().substring(9)}',
+                  id: 'KH-${DateTime.now().millisecondsSinceEpoch.toString().substring(8)}',
                   category: category,
                   description: descController.text.isEmpty ? 'طلب صيانة وفحص شامل ($category)' : descController.text,
                   city: _selectedCity,
@@ -320,7 +319,7 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     backgroundColor: Colors.teal.shade800,
-                    content: Text('✅ تم إنشاء الطلب ${newOrder.id} بنجاح! كود الأمان المنزلي PIN: $newPin (افتح بوابة الفنيين الآن لقبوله)'),
+                    content: Text('تم إنشاء الطلب ${newOrder.id} بنجاح! كود الأمان المنزلي PIN: $newPin (افتح بوابة الفنيين لقبوله)'),
                   ),
                 );
               },
@@ -348,7 +347,7 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: Colors.teal, width: 2),
                 ),
-                child: const Icon(Icons.qr_code_2, size: 160, color: Color(0xFF0F766E)),
+                child: const Icon(Icons.qr_code_2, size: 150, color: Color(0xFF0F766E)),
               ),
               const SizedBox(height: 12),
               SelectableText(qrData, textAlign: TextAlign.center, style: const TextStyle(fontSize: 12, color: Colors.blueGrey)),
@@ -392,12 +391,8 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
   }
 
   Widget _buildTopPortalSelectorBar() {
-    final portals = [
-      {'title': 'بوابة العميل', 'icon': Icons.person},
-      {'title': 'بوابة الفنيين', 'icon': Icons.handyman},
-      {'title': 'بوابة الشركات B2B', 'icon': Icons.business},
-      {'title': 'إدارة KHADAMATY', 'icon': Icons.admin_panel_settings},
-    ];
+    final List<String> titles = ['بوابة العميل', 'بوابة الفنيين', 'بوابة الشركات B2B', 'إدارة KHADAMATY'];
+    final List<IconData> icons = [Icons.person, Icons.handyman, Icons.business, Icons.admin_panel_settings];
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
@@ -406,16 +401,16 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
         spacing: 8,
         runSpacing: 8,
         alignment: WrapAlignment.center,
-        children: List.generate(portals.length, (index) {
+        children: List.generate(titles.length, (index) {
           final isSelected = _selectedPortal == index;
           return ChoiceChip(
             avatar: Icon(
-              portals[index]['icon'] as IconData,
+              icons[index],
               size: 18,
               color: isSelected ? Colors.white : _portalPrimaryColor,
             ),
             label: Text(
-              portals[index]['title'] as String,
+              titles[index],
               style: TextStyle(
                 color: isSelected ? Colors.white : Colors.black87,
                 fontWeight: FontWeight.bold,
@@ -525,10 +520,10 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
 
   // 1. بوابة العميل
   Widget _buildCustomerPortalHome() {
-    final services = [
+    final List> services = [
       {'name': 'تكييف وتبريد', 'icon': Icons.ac_unit, 'color': Colors.blue, 'price': '250 - 650'},
       {'name': 'سباكة', 'icon': Icons.plumbing, 'color': Colors.teal, 'price': '150 - 450'},
-      {'name': 'كهرباء', 'icon': Icons.bolt, 'color': Colors.amber.shade800, 'price': '150 - 500'},
+      {'name': 'كهرباء', 'icon': Icons.bolt, 'color': Colors.orange, 'price': '150 - 500'},
       {'name': 'أجهزة منزلية', 'icon': Icons.local_laundry_service, 'color': Colors.indigo, 'price': '250 - 700'},
       {'name': 'نجارة', 'icon': Icons.handyman, 'color': Colors.brown, 'price': '200 - 600'},
       {'name': 'نظافة شاملة', 'icon': Icons.cleaning_services, 'color': Colors.green, 'price': '350 - 1200'},
@@ -557,7 +552,7 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
                 }),
                 _quickActionButton(Icons.phone_in_talk, 'خط ساخن', Colors.blue, () {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('📞 خدمة عملاء خدماتي الخط الساخن: 19999')),
+                    const SnackBar(content: Text('خدمة عملاء خدماتي الخط الساخن: 19999')),
                   );
                 }),
                 _quickActionButton(Icons.chat, 'دعم واتساب', Colors.green, () {
@@ -621,6 +616,7 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
           itemCount: services.length,
           itemBuilder: (context, index) {
             final item = services[index];
+            final Color itemColor = item['color'] as Color;
             return InkWell(
               onTap: () {
                 if (item['name'] == 'عقود شركات B2B') {
@@ -641,8 +637,8 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
                   children: [
                     CircleAvatar(
                       radius: 26,
-                      backgroundColor: (item['color'] as Color).withOpacity(0.12),
-                      child: Icon(item['icon'] as IconData, color: item['color'] as Color, size: 28),
+                      backgroundColor: itemColor.withOpacity(0.12),
+                      child: Icon(item['icon'] as IconData, color: itemColor, size: 28),
                     ),
                     const SizedBox(height: 10),
                     Text(item['name'] as String,
@@ -680,9 +676,9 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
                   const Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('👨‍🔧 بوابة الفني المعتمد - استقبال الطلبات الحية',
+                      Text('بوابة الفني المعتمد - استقبال الطلبات الحية',
                           style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
-                      Text('م. مصطفى السيد • تخصص تكييف وسباكة • تقييم 4.9 ⭐',
+                      Text('م. مصطفى السيد • تخصص تكييف وسباكة • تقييم 4.9',
                           style: TextStyle(color: Colors.white70, fontSize: 13)),
                     ],
                   ),
@@ -709,7 +705,7 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('📡 رادار طلبات العملاء المباشرة في $_selectedCity:',
+            Text('رادار طلبات العملاء المباشرة في $_selectedCity:',
                 style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             FilledButton.tonalIcon(
               icon: const Icon(Icons.account_balance_wallet),
@@ -717,7 +713,7 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
               onPressed: () {
                 setState(() => _techWallet += 200);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('✅ تم شحن محفظة الفني بمبلغ 200 ج.م بنجاح!')),
+                  const SnackBar(content: Text('تم شحن محفظة الفني بمبلغ 200 ج.م بنجاح!')),
                 );
               },
             ),
@@ -743,7 +739,7 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
                                 margin: const EdgeInsets.only(left: 8),
                                 decoration: BoxDecoration(
                                     color: Colors.red.shade100, borderRadius: BorderRadius.circular(6)),
-                                child: const Text('🚨 طوارئ 45 د',
+                                child: const Text('طوارئ 45 د',
                                     style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 12)),
                               ),
                             Text('${order.category} (${order.id})',
@@ -759,7 +755,7 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
                     const SizedBox(height: 8),
                     Text('وصف العطل: ${order.description}', style: const TextStyle(fontSize: 14)),
                     const SizedBox(height: 6),
-                    Text('📍 المدينة: ${order.city} • العميل: ${order.customerName} • السعر المعروض: ${order.price} ج.م',
+                    Text('المدينة: ${order.city} • العميل: ${order.customerName} • السعر المعروض: ${order.price} ج.م',
                         style: const TextStyle(color: Colors.black54, fontSize: 13)),
                     const SizedBox(height: 14),
                     Wrap(
@@ -776,7 +772,7 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
                                 order.technicianName = 'م. مصطفى السيد (فني معتمد)';
                               });
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('✅ تم قبول المهمة! توجه للعميل واطلب كود الأمان PIN.')),
+                                const SnackBar(content: Text('تم قبول المهمة! توجه للعميل واطلب كود الأمان PIN.')),
                               );
                             },
                           ),
@@ -792,7 +788,7 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
                               });
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                    content: Text('🎉 تم التحقق من كود الأمان PIN وإصدار شهادة الضمان للعميل!')),
+                                    content: Text('تم التحقق من كود الأمان PIN وإصدار شهادة الضمان للعميل!')),
                               );
                             },
                           ),
@@ -825,7 +821,7 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('🏢 بوابة عقود صيانة الشركات والمؤسسات (B2B)',
+              const Text('بوابة عقود صيانة الشركات والمؤسسات (B2B)',
                   style: TextStyle(color: Colors.white, fontSize: 21, fontWeight: FontWeight.bold)),
               const SizedBox(height: 6),
               const Text('إدارة مركزية لصيانة الفروع، الصيدليات، المطاعم، العيادات، والمجمعات السكنية بفواتير ضريبية رسمية.',
@@ -846,7 +842,7 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
                     });
                   });
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('✅ تم تفعيل عقد الصيانة السنوي للشركة بنجاح!')),
+                    const SnackBar(content: Text('تم تفعيل عقد الصيانة السنوي للشركة بنجاح!')),
                   );
                 },
               ),
@@ -854,7 +850,7 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
           ),
         ),
         const SizedBox(height: 20),
-        const Text('📋 العقود السنوية النشطة للشركات والفروع:',
+        const Text('العقود السنوية النشطة للشركات والفروع:',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         const SizedBox(height: 12),
         ..._b2bContracts.map((c) => Card(
@@ -864,7 +860,7 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
                   backgroundColor: Color(0xFFEDE9FE),
                   child: Icon(Icons.domain_verification, color: Color(0xFF6D28D9)),
                 ),
-                title: Text(c['company'], style: const TextStyle(fontWeight: FontWeight.bold)),
+                title: Text(c['company'] as String, style: const TextStyle(fontWeight: FontWeight.bold)),
                 subtitle: Text('${c['plan']} • الزيارات المتبقية: ${c['visitsLeft']} زيارة'),
                 trailing: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -872,7 +868,7 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
                   children: [
                     Text('${c['monthlyFee']} ج.م / شهرياً',
                         style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF6D28D9))),
-                    Text(c['status'], style: const TextStyle(color: Colors.green, fontSize: 12)),
+                    Text(c['status'] as String, style: const TextStyle(color: Colors.green, fontSize: 12)),
                   ],
                 ),
               ),
@@ -898,7 +894,7 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('🛡️ لوحة تحكم المالك والمدير العام (Super Admin)',
+              const Text('لوحة تحكم المالك والمدير العام (Super Admin)',
                   style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
               const SizedBox(height: 6),
               const Text('مراقبة حية لكافة العمليات، أرباح المنصة، وتوثيق البطاقات الشخصية والفيش الجنائي للفنيين.',
@@ -916,43 +912,45 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
           ),
         ),
         const SizedBox(height: 20),
-        const Text('🆔 طلبات توثيق الفنيين الجدد (مراجعة الرقم القومي والفيش الجنائي):',
+        const Text('طلبات توثيق الفنيين الجدد (مراجعة الرقم القومي والفيش الجنائي):',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         const SizedBox(height: 10),
-        ..._pendingTechnicians.map((tech) => Card(
-              margin: const EdgeInsets.only(bottom: 12),
-              child: ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: tech['approved'] ? Colors.green.shade100 : Colors.amber.shade100,
-                  child: Icon(tech['approved'] ? Icons.verified : Icons.pending_actions,
-                      color: tech['approved'] ? Colors.green : Colors.amber.shade900),
-                ),
-                title: Text('${tech['name']} - ${tech['specialty']} (${tech['city']})',
-                    style: const TextStyle(fontWeight: FontWeight.bold)),
-                subtitle: Text('الرقم القومي: ${tech['nationalId']} • ${tech['criminalRecord']}'),
-                trailing: tech['approved']
-                    ? const Chip(label: Text('معتمد وموثق ✅'), backgroundColor: Color(0xFFDCFCE7))
-                    : FilledButton(
-                        onPressed: () {
-                          setState(() => tech['approved'] = true);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('✅ تم توثيق وتفعيل حساب الفني ${tech['name']} بنجاح!')),
-                          );
-                        },
-                        child: const Text('اعتماد وتوثيق الفني'),
-                      ),
+        ..._pendingTechnicians.map((tech) {
+          final bool isApproved = tech['approved'] as bool;
+          return Card(
+            margin: const EdgeInsets.only(bottom: 12),
+            child: ListTile(
+              leading: CircleAvatar(
+                backgroundColor: isApproved ? Colors.green.shade100 : Colors.amber.shade100,
+                child: Icon(isApproved ? Icons.verified : Icons.pending_actions,
+                    color: isApproved ? Colors.green : Colors.amber.shade900),
               ),
-            )),
+              title: Text('${tech['name']} - ${tech['specialty']} (${tech['city']})',
+                  style: const TextStyle(fontWeight: FontWeight.bold)),
+              subtitle: Text('الرقم القومي: ${tech['nationalId']} • ${tech['criminalRecord']}'),
+              trailing: isApproved
+                  ? const Chip(label: Text('معتمد وموثق'), backgroundColor: Color(0xFFDCFCE7))
+                  : FilledButton(
+                      onPressed: () {
+                        setState(() => tech['approved'] = true);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('تم توثيق وتفعيل حساب الفني ${tech['name']} بنجاح!')),
+                        );
+                      },
+                      child: const Text('اعتماد وتوثيق الفني'),
+                    ),
+            ),
+          );
+        }),
       ],
     );
   }
 
-  // التبويبات السفلية
   Widget _buildOrdersAndWarrantyTab() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Text('📋 سجل الطلبات وشهادات الضمان الرقمية (QR):',
+        const Text('سجل الطلبات وشهادات الضمان الرقمية (QR):',
             style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold)),
         const SizedBox(height: 12),
         ..._orders.map((order) => Card(
@@ -972,9 +970,9 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
                     ),
                     Text(order.description),
                     const SizedBox(height: 8),
-                    Text('🔐 كود الأمان المنزلي PIN: ${order.pinCode} • الفني: ${order.technicianName}',
+                    Text('كود الأمان المنزلي PIN: ${order.pinCode} • الفني: ${order.technicianName}',
                         style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF0F766E))),
-                    Text('💰 القيمة: ${order.price} ج.م • الضمان ساري حتى: ${order.warrantyEnd}'),
+                    Text('القيمة: ${order.price} ج.م • الضمان ساري حتى: ${order.warrantyEnd}'),
                     const SizedBox(height: 10),
                     Row(
                       children: [
@@ -1010,11 +1008,11 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('💬 مركز الرسائل الفورية وخدمة عملاء خدماتي 24/7',
+            const Text('مركز الرسائل الفورية وخدمة عملاء خدماتي 24/7',
                 style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
             const ListTile(
-              leading: CircleAvatar(child: Icon(Icons.engineering)),
+              leading: CircleAvatar(child: Icon(Icons.handyman)),
               title: Text('م. مصطفى السيد (فني معتمد)'),
               subtitle: Text('أنا في الطريق إليك الآن، يرجى تجهيز كود الأمان المنزلي PIN.'),
               trailing: Chip(label: Text('متصل الآن'), backgroundColor: Color(0xFFDCFCE7)),
@@ -1027,7 +1025,7 @@ class _MainPlatformShellState extends State<MainPlatformShell> {
               trailing: FilledButton(
                 onPressed: () {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('✅ تم إرسال رسالتك لفريق الدعم الفوري في خدماتي!')),
+                    const SnackBar(content: Text('تم إرسال رسالتك لفريق الدعم الفوري في خدماتي!')),
                   );
                 },
                 child: const Text('بدء محادثة فورية'),

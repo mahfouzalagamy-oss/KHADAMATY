@@ -7,8 +7,6 @@ on:
 
 permissions:
   contents: write
-  pages: write
-  id-token: write
 
 jobs:
   build-encrypted-release:
@@ -20,7 +18,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Java 17
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
@@ -31,22 +29,32 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Build Obfuscated (Encrypted) Android & Web Production Files
+      - name: Create Clean Flutter Project and Inject Portals Code
         run: |
           flutter create --org com.khadamaty.official --project-name khadamaty_app --platforms android,web build_app
-          cp mobile_app/pubspec.yaml build_app/pubspec.yaml
           cp mobile_app/lib/main.dart build_app/lib/main.dart
           rm -rf build_app/test
           cd build_app
           flutter pub get
-          # بناء ملف APK مشفر ومحمّي ضد الهندسة العكسية
-          flutter build apk --release --obfuscate --split-debug-info=./debug_symbols --no-tree-shake-icons
-          # بناء حزمة متجر جوجل بلاي AAB مشفرة ومحمية
-          flutter build appbundle --release --obfuscate --split-debug-info=./debug_symbols --no-tree-shake-icons
-          # بناء الموقع الإلكتروني المضغوط والمشفر للنطاق الرسمي www.khadamaty.com
-          flutter build web --release --no-tree-shake-icons
+
+      - name: Build Website Ready for Cloudflare
+        working-directory: build_app
+        run: |
+          flutter build web --release
           echo "www.khadamaty.com" > build/web/CNAME
           cp build/web/index.html build/web/404.html
+
+      - name: Upload Encrypted Website Ready for www.khadamaty.com
+        uses: actions/upload-artifact@v4
+        with:
+          name: khadamaty-encrypted-website
+          path: build_app/build/web
+
+      - name: Build Obfuscated Android APK & AAB
+        working-directory: build_app
+        run: |
+          flutter build apk --release --obfuscate --split-debug-info=./debug_symbols
+          flutter build appbundle --release --obfuscate --split-debug-info=./debug_symbols
 
       - name: Upload Encrypted Android APK
         uses: actions/upload-artifact@v4
@@ -59,9 +67,3 @@ jobs:
         with:
           name: khadamaty-encrypted-playstore-aab
           path: build_app/build/app/outputs/bundle/release/app-release.aab
-
-      - name: Upload Encrypted Website Ready for www.khadamaty.com
-        uses: actions/upload-artifact@v4
-        with:
-          name: khadamaty-encrypted-website
-          path: build_app/build/web
