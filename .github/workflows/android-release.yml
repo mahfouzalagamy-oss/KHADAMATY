@@ -29,32 +29,26 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Create Clean Flutter Project and Inject Portals Code
+      - name: Copy Full Modular Architecture (core/shared/features) and Build
         run: |
           flutter create --org com.khadamaty.official --project-name khadamaty_app --platforms android,web build_app
-          cp mobile_app/lib/main.dart build_app/lib/main.dart
+          rm -rf build_app/lib/*
+          cp -r mobile_app/lib/* build_app/lib/
           rm -rf build_app/test
           cd build_app
           flutter pub get
-
-      - name: Build Website Ready for Cloudflare
-        working-directory: build_app
-        run: |
-          flutter build web --release
+          sed -i 's/<head>/<head><link href="https:\/\/fonts.googleapis.com\/css2?family=Cairo:wght@400;700;900\&display=swap" rel="stylesheet">/g' web/index.html
+          flutter build web --release --no-tree-shake-icons
           echo "www.khadamaty.com" > build/web/CNAME
           cp build/web/index.html build/web/404.html
+          flutter build apk --release --obfuscate --split-debug-info=./debug_symbols --no-tree-shake-icons
+          flutter build appbundle --release --obfuscate --split-debug-info=./debug_symbols --no-tree-shake-icons
 
       - name: Upload Encrypted Website Ready for www.khadamaty.com
         uses: actions/upload-artifact@v4
         with:
           name: khadamaty-encrypted-website
           path: build_app/build/web
-
-      - name: Build Obfuscated Android APK & AAB
-        working-directory: build_app
-        run: |
-          flutter build apk --release --obfuscate --split-debug-info=./debug_symbols
-          flutter build appbundle --release --obfuscate --split-debug-info=./debug_symbols
 
       - name: Upload Encrypted Android APK
         uses: actions/upload-artifact@v4
