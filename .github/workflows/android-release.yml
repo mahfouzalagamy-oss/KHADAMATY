@@ -1,4 +1,4 @@
-name: Build Encrypted & Obfuscated KHADAMATY (Private Production)
+name: Build & Auto-Deploy KHADAMATY (GitHub Pages + Android APK)
 
 on:
   push:
@@ -7,6 +7,8 @@ on:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 jobs:
   build-encrypted-release:
@@ -14,7 +16,7 @@ jobs:
     timeout-minutes: 20
 
     steps:
-      - name: Checkout Private Repository
+      - name: Checkout Repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -34,7 +36,7 @@ jobs:
           channel: 'stable'
           cache: false
 
-      - name: Analyze & Build Supabase-Connected Enterprise Web & Android Release
+      - name: Analyze & Build Web (GitHub Pages) + Android Release
         run: |
           flutter create --org com.khadamaty.official --project-name khadamaty_app --platforms android,web build_app
           rm -rf build_app/lib/*
@@ -45,13 +47,21 @@ jobs:
           flutter pub get
           flutter analyze --no-fatal-infos --no-fatal-warnings
           sed -i 's/<head>/<head><link href="https:\/\/fonts.googleapis.com\/css2?family=Cairo:wght@400;700;900\&display=swap" rel="stylesheet">/g' web/index.html
-          flutter build web --release --no-tree-shake-icons
-          echo "www.khadamaty.com" > build/web/CNAME
+          flutter build web --release --base-href "/KHADAMATY/" --no-tree-shake-icons
+          touch build/web/.nojekyll
           cp build/web/index.html build/web/404.html
           flutter build apk --release --obfuscate --split-debug-info=./debug_symbols --no-tree-shake-icons
           flutter build appbundle --release --obfuscate --split-debug-info=./debug_symbols --no-tree-shake-icons
 
-      - name: Upload Encrypted Website Ready for www.khadamaty.com
+      - name: Auto-Deploy Website to GitHub Pages (gh-pages branch)
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./build_app/build/web
+          force_orphan: true
+          commit_message: "Auto-deploy KHADAMATY Web to GitHub Pages"
+
+      - name: Upload Website Artifact Backup
         uses: actions/upload-artifact@v4
         with:
           name: khadamaty-encrypted-website
