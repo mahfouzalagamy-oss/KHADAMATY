@@ -12,7 +12,7 @@ class RoleHeaderBar extends StatelessWidget {
       builder: (ctx) => Directionality(
         textDirection: TextDirection.rtl,
         child: AlertDialog(
-          title: const Text('مركز الإشعارات الفورية (Supabase Live)'),
+          title: const Text('مركز إشعارات صيانة الفورية (Supabase Live)'),
           content: SizedBox(
             width: 420,
             child: SingleChildScrollView(
@@ -22,7 +22,7 @@ class RoleHeaderBar extends StatelessWidget {
                     .take(8)
                     .map((n) => ListTile(
                           dense: true,
-                          leading: const Icon(Icons.notifications_active, color: AppColors.customerPrimary),
+                          leading: const Icon(Icons.notifications_active, color: AppColors.syaanhOrange),
                           title: Text(n, style: const TextStyle(fontSize: 13)),
                         ))
                     .toList(),
@@ -68,14 +68,14 @@ class RoleHeaderBar extends StatelessWidget {
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 12,
-                    color: state.isCloudConnected ? AppColors.success : AppColors.accentAmber,
+                    color: state.isCloudConnected ? AppColors.success : AppColors.syaanhOrange,
                   ),
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: urlCtrl,
                   decoration: const InputDecoration(
-                    labelText: 'Supabase Project URL (https://xxxx.supabase.co)',
+                    labelText: 'Supabase Project URL',
                     prefixIcon: Icon(Icons.link),
                   ),
                 ),
@@ -83,7 +83,7 @@ class RoleHeaderBar extends StatelessWidget {
                 TextField(
                   controller: keyCtrl,
                   decoration: const InputDecoration(
-                    labelText: 'Supabase anon public API Key (eyJ...)',
+                    labelText: 'Supabase anon public API Key',
                     prefixIcon: Icon(Icons.vpn_key),
                   ),
                 ),
@@ -103,8 +103,8 @@ class RoleHeaderBar extends StatelessWidget {
                     SnackBar(
                       content: Text(
                         ok
-                            ? 'تم الاتصال بسحابة Supabase بنجاح! الطلبات والإشعارات متزامنة الآن بين الهواتف.'
-                            : 'تم حفظ البيانات، تأكد من تشغيل كود SQL في Supabase لبدء المزامنة.',
+                            ? 'تم الاتصال بسحابة Supabase بنجاح! الطلبات والإشعارات متزامنة حياً.'
+                            : 'تم حفظ البيانات، جاري المزامنة التلقائية.',
                       ),
                     ),
                   );
@@ -120,40 +120,21 @@ class RoleHeaderBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final state = AppStateService.instance;
-    final Color primary = AppColors.byRole(state.currentRole);
     final roleSubtitles = [
-      'بوابة العميل: اطلب فني، حدد موقعك وموعدك، وتابع حالة الطلب',
-      'بوابة الفني: استقبل الطلبات، اقبل أو ارفض، وحدّث حالة العمل وأرباحك',
-      'لوحة تحكم الأدمن: إدارة الفنيين، الخدمات، الأسعار، الطلبات، والتقارير',
+      'اطلب خدمة صيانة، قارن عروض الأسعار، وتابع الفني بالضمان الذهبي',
+      'بوابة مزود الخدمة: استقبل الطلبات، قدّم عرض سعر، وحدّث حالة العمل',
+      'لوحة إدارة المنصة: اعتماد الشركات والفنيين، الأسعار، والتقارير المالية',
     ];
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            border: Border(bottom: BorderSide(color: AppColors.border)),
-          ),
-          child: Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            alignment: WrapAlignment.center,
-            children: [
-              _roleChip(context, 0, 'دور العميل', Icons.person, AppColors.customerPrimary),
-              _roleChip(context, 1, 'دور الفني', Icons.handyman, AppColors.technicianPrimary),
-              _roleChip(context, 2, 'لوحة الأدمن', Icons.admin_panel_settings, AppColors.adminPrimary),
-            ],
-          ),
-        ),
+        // شريط صيانة العلوي الكحلي الملكي
         Container(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: const BoxDecoration(
-            color: Colors.white,
-            border: Border(bottom: BorderSide(color: AppColors.border)),
+            color: AppColors.customerPrimary,
           ),
           child: Wrap(
             alignment: WrapAlignment.spaceBetween,
@@ -166,15 +147,36 @@ class RoleHeaderBar extends StatelessWidget {
                 children: [
                   Container(
                     padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(color: primary.withAlpha(25), borderRadius: BorderRadius.circular(10)),
-                    child: Icon(Icons.home_repair_service, color: primary, size: 24),
+                    decoration: BoxDecoration(
+                      color: AppColors.syaanhOrange,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.handyman, color: Colors.white, size: 22),
                   ),
                   const SizedBox(width: 10),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('خدماتي KHADAMATY مصر', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
-                      Text(roleSubtitles[state.currentRole], style: TextStyle(fontSize: 11, color: primary, fontWeight: FontWeight.bold)),
+                      const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'خدماتي • صيانة',
+                            style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: Colors.white),
+                          ),
+                          SizedBox(width: 6),
+                          Chip(
+                            label: Text('ضمان 100%', style: TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.bold)),
+                            backgroundColor: AppColors.syaanhOrange,
+                            visualDensity: VisualDensity.compact,
+                            padding: EdgeInsets.zero,
+                          ),
+                        ],
+                      ),
+                      Text(
+                        roleSubtitles[state.currentRole],
+                        style: const TextStyle(fontSize: 11, color: Colors.white70),
+                      ),
                     ],
                   ),
                 ],
@@ -190,25 +192,21 @@ class RoleHeaderBar extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                       decoration: BoxDecoration(
-                        color: state.isCloudConnected ? const Color(0xFFDCFCE7) : const Color(0xFFFEF3C7),
+                        color: state.isCloudConnected ? const Color(0xFF16A34A) : AppColors.syaanhOrange,
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
-                            state.isCloudConnected ? Icons.cloud_done : Icons.cloud_off,
-                            size: 15,
-                            color: state.isCloudConnected ? AppColors.success : AppColors.accentAmber,
+                            state.isCloudConnected ? Icons.cloud_done : Icons.cloud_sync,
+                            size: 14,
+                            color: Colors.white,
                           ),
                           const SizedBox(width: 5),
                           Text(
-                            state.isCloudConnected ? 'Supabase متصل حياً' : 'ربط Supabase',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                              color: state.isCloudConnected ? AppColors.success : AppColors.textPrimary,
-                            ),
+                            state.isCloudConnected ? 'متصل بـ Supabase' : 'ربط السحابة',
+                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white),
                           ),
                         ],
                       ),
@@ -216,28 +214,66 @@ class RoleHeaderBar extends StatelessWidget {
                   ),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8),
-                    decoration: BoxDecoration(border: Border.all(color: AppColors.border), borderRadius: BorderRadius.circular(10)),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withAlpha(25),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                     child: DropdownButton<String>(
                       value: state.selectedCity,
+                      dropdownColor: AppColors.customerPrimary,
                       underline: const SizedBox(),
                       isDense: true,
-                      items: state.egyptCities.map((c) => DropdownMenuItem(value: c, child: Text(c, style: const TextStyle(fontSize: 12)))).toList(),
+                      iconEnabledColor: Colors.white,
+                      items: state.egyptCities
+                          .map((c) => DropdownMenuItem(
+                                value: c,
+                                child: Text(c, style: const TextStyle(fontSize: 12, color: Colors.white)),
+                              ))
+                          .toList(),
                       onChanged: (v) {
                         if (v != null) state.setCity(v);
                       },
                     ),
                   ),
                   IconButton(
-                    icon: Badge(label: Text('${state.notifications.length}'), child: const Icon(Icons.notifications_outlined)),
+                    icon: Badge(
+                      backgroundColor: AppColors.syaanhOrange,
+                      label: Text('${state.notifications.length}'),
+                      child: const Icon(Icons.notifications_outlined, color: Colors.white),
+                    ),
                     onPressed: () => _showNotificationsModal(context, state),
                   ),
-                  OutlinedButton.icon(
-                    icon: const Icon(Icons.phone_android, size: 15),
-                    label: Text(state.isAuthenticated ? state.currentUserName : 'دخول OTP'),
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: AppColors.customerPrimary,
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    ),
+                    icon: const Icon(Icons.person, size: 15),
+                    label: Text(state.isAuthenticated ? state.currentUserName : 'دخول OTP', style: const TextStyle(fontSize: 12)),
                     onPressed: () => Navigator.pushNamed(context, AppRoutes.login),
                   ),
                 ],
               ),
+            ],
+          ),
+        ),
+        // شريط تبديل الأدوار الثلاثة على طراز تبويبات صيانة
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            border: Border(bottom: BorderSide(color: AppColors.border)),
+          ),
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            alignment: WrapAlignment.center,
+            children: [
+              _roleChip(context, 0, 'تطبيق العميل', Icons.person_outline, AppColors.customerPrimary),
+              _roleChip(context, 1, 'تطبيق الفني / المزود', Icons.engineering_outlined, AppColors.syaanhOrange),
+              _roleChip(context, 2, 'إدارة صيانة (Admin)', Icons.dashboard_customize_outlined, AppColors.adminPrimary),
             ],
           ),
         ),
@@ -255,13 +291,12 @@ class RoleHeaderBar extends StatelessWidget {
           Navigator.pushNamedAndRemoveUntil(context, AppRoutes.home, (r) => false);
         }
       },
-      borderRadius: BorderRadius.circular(10),
+      borderRadius: BorderRadius.circular(24),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
         decoration: BoxDecoration(
-          color: selected ? color : Colors.white,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: selected ? color : AppColors.border),
+          color: selected ? color : const Color(0xFFF1F5F9),
+          borderRadius: BorderRadius.circular(24),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,

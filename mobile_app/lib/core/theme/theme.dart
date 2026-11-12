@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  static const Color customerPrimary = Color(0xFF0F766E);
-  static const Color technicianPrimary = Color(0xFF1D4ED8);
-  static const Color adminPrimary = Color(0xFFB91C1C);
+  // هوية تطبيق صيانة (Syaanh Qatar Style: Royal Navy + Vibrant Orange)
+  static const Color customerPrimary = Color(0xFF0C2D48); // كحلي صيانة الملكي
+  static const Color syaanhOrange = Color(0xFFFF6B00); // برتقالي صيانة المميز
+  static const Color technicianPrimary = Color(0xFF145DA0);
+  static const Color adminPrimary = Color(0xFF991B1B);
 
-  static const Color accentAmber = Color(0xFFD97706);
-  static const Color background = Color(0xFFF8FAFC);
+  static const Color accentAmber = Color(0xFFFF6B00);
+  static const Color background = Color(0xFFF4F7FA);
   static const Color surface = Color(0xFFFFFFFF);
   static const Color textPrimary = Color(0xFF0F172A);
   static const Color textSecondary = Color(0xFF475569);
@@ -29,26 +31,32 @@ class AppTheme {
       fontFamily: 'Cairo',
       fontFamilyFallback: const ['Segoe UI', 'Tahoma', 'Arial', 'sans-serif'],
       scaffoldBackgroundColor: AppColors.background,
-      colorScheme: ColorScheme.fromSeed(seedColor: primary, primary: primary, surface: AppColors.surface),
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: primary,
+        primary: primary,
+        secondary: AppColors.syaanhOrange,
+        surface: AppColors.surface,
+      ),
       appBarTheme: AppBarTheme(
-        backgroundColor: AppColors.surface,
-        foregroundColor: AppColors.textPrimary,
+        backgroundColor: AppColors.customerPrimary,
+        foregroundColor: Colors.white,
         elevation: 0,
-        titleTextStyle: TextStyle(fontFamily: 'Cairo', fontSize: 17, fontWeight: FontWeight.w800, color: primary),
+        titleTextStyle: const TextStyle(fontFamily: 'Cairo', fontSize: 17, fontWeight: FontWeight.w800, color: Colors.white),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: primary,
+          backgroundColor: AppColors.syaanhOrange,
           foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          elevation: 0,
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 13),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          textStyle: const TextStyle(fontFamily: 'Cairo', fontSize: 13, fontWeight: FontWeight.bold),
+          textStyle: const TextStyle(fontFamily: 'Cairo', fontSize: 13, fontWeight: FontWeight.w800),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: primary,
-          side: BorderSide(color: primary, width: 1.3),
+          side: BorderSide(color: primary, width: 1.4),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           textStyle: const TextStyle(fontFamily: 'Cairo', fontSize: 12, fontWeight: FontWeight.bold),
@@ -60,7 +68,7 @@ class AppTheme {
         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.border)),
         enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.border)),
-        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: primary, width: 2)),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.syaanhOrange, width: 2)),
       ),
     );
   }

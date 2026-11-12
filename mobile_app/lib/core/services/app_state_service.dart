@@ -36,7 +36,7 @@ class AppStateService extends ChangeNotifier {
     'طنطا',
     'الزقازيق',
     'أسيوط',
-    'أسوان',
+    'أسوان', 'الدوحة - قطر', 'الريان - قطر', 'لوسيل - قطر', 'الوكرة - قطر',
   ];
 
   final List<String> notifications = [
