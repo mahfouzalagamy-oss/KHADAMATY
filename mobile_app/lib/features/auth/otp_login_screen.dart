@@ -21,7 +21,7 @@ class _OtpLoginScreenState extends State<OtpLoginScreen> {
   Widget build(BuildContext context) {
     final color = AppColors.byRole(_role);
     return Scaffold(
-      appBar: AppBar(title: const Text('تسجيل الدخول برقم الموبايل (OTP)')),
+      appBar: AppBar(title: const Text('تسجيل الدخول برقم الجوال (OTP)')),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -38,7 +38,7 @@ class _OtpLoginScreenState extends State<OtpLoginScreen> {
                       Icon(Icons.phonelink_lock, size: 48, color: color),
                       const SizedBox(height: 12),
                       const Text(
-                        'منصة خدماتي للصيانة المنزلية في مصر',
+                        'منصة خدماتي • صيانة المعتمدة',
                         textAlign: TextAlign.center,
                         style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
                       ),
@@ -49,7 +49,7 @@ class _OtpLoginScreenState extends State<OtpLoginScreen> {
                         children: [
                           ChoiceChip(label: const Text('عميل'), selected: _role == 0, onSelected: (_) => setState(() => _role = 0)),
                           ChoiceChip(label: const Text('فني صيانة'), selected: _role == 1, onSelected: (_) => setState(() => _role = 1)),
-                          ChoiceChip(label: const Text('أدمن المنصة'), selected: _role == 2, onSelected: (_) => setState(() => _role = 2)),
+                          ChoiceChip(label: const Text('إدارة التطبيق'), selected: _role == 2, onSelected: (_) => setState(() => _role = 2)),
                         ],
                       ),
                       const SizedBox(height: 16),
@@ -58,7 +58,7 @@ class _OtpLoginScreenState extends State<OtpLoginScreen> {
                       TextField(
                         controller: _phoneCtrl,
                         keyboardType: TextInputType.phone,
-                        decoration: const InputDecoration(labelText: 'رقم الموبايل المصري (010/011/012/015)', prefixIcon: Icon(Icons.phone_android)),
+                        decoration: const InputDecoration(labelText: 'رقم الجوال (مصر / قطر)', prefixIcon: Icon(Icons.phone_android)),
                       ),
                       const SizedBox(height: 16),
                       if (!_sent)
@@ -93,6 +93,12 @@ class _OtpLoginScreenState extends State<OtpLoginScreen> {
                           },
                         ),
                       ],
+                      const Divider(height: 28),
+                      OutlinedButton.icon(
+                        icon: const Icon(Icons.badge, color: AppColors.syaanhOrange),
+                        label: const Text('تسجيل فني جديد (رفع الهوية للمراجعة والموافقة)'),
+                        onPressed: () => Navigator.pushNamed(context, AppRoutes.registerTech),
+                      ),
                     ],
                   ),
                 ),

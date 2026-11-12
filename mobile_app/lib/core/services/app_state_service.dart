@@ -36,12 +36,16 @@ class AppStateService extends ChangeNotifier {
     'طنطا',
     'الزقازيق',
     'أسيوط',
-    'أسوان', 'الدوحة - قطر', 'الريان - قطر', 'لوسيل - قطر', 'الوكرة - قطر',
+    'أسوان',
+    'الدوحة - قطر',
+    'الريان - قطر',
+    'لوسيل - قطر',
+    'الوكرة - قطر',
   ];
 
   final List<String> notifications = [
-    'مرحباً بك في خدماتي KHADAMATY مصر - تم تفعيل الدفع التجريبي عبر فودافون كاش وإنستا باي.',
-    'الفني م. مصطفى السيد قريب من موقعك في القاهرة (يبعد 1.2 كم).',
+    'مرحباً بك في خدماتي • صيانة — ضمان ذهبي 30 يوماً وتوثيق كامل لهوية الفنيين.',
+    'طلب تسجيل فني جديد (م. كريم طارق - كهرباء) بانتظار مراجعة الهوية والموافقة من الإدارة.',
   ];
 
   final List<ServiceItemModel> services = [
@@ -52,7 +56,7 @@ class AppStateService extends ChangeNotifier {
       minPrice: 150,
       maxPrice: 450,
       icon: Icons.plumbing,
-      color: const Color(0xFF0F766E),
+      color: const Color(0xFF0C2D48),
     ),
     ServiceItemModel(
       id: 'electric',
@@ -61,7 +65,7 @@ class AppStateService extends ChangeNotifier {
       minPrice: 150,
       maxPrice: 500,
       icon: Icons.bolt,
-      color: const Color(0xFFD97706),
+      color: const Color(0xFFFF6B00),
     ),
     ServiceItemModel(
       id: 'ac',
@@ -109,10 +113,16 @@ class AppStateService extends ChangeNotifier {
       city: 'القاهرة',
       phone: '01066554433',
       distanceKm: 1.2,
+      nationalId: '29104150104421',
+      idFrontPhoto: 'بطاقة_مصطفى_أمامي.jpg',
+      idBackPhoto: 'بطاقة_مصطفى_خلفي.jpg',
+      certificatePhoto: 'شهادة_مزاولة_تكييف.jpg',
+      experienceYears: 8,
+      walletNumber: '01066554433',
       rating: 4.9,
       completedJobs: 128,
       isVerified: true,
-      isOnline: true,
+      approvalStatus: 'approved',
     ),
     TechnicianItemModel(
       id: 'TECH-2',
@@ -121,22 +131,34 @@ class AppStateService extends ChangeNotifier {
       city: 'القاهرة',
       phone: '01022334455',
       distanceKm: 2.4,
+      nationalId: '29308220105519',
+      idFrontPhoto: 'بطاقة_حسن_أمامي.jpg',
+      idBackPhoto: 'بطاقة_حسن_خلفي.jpg',
+      certificatePhoto: 'فيش_جنائي_معتمد.jpg',
+      experienceYears: 6,
+      walletNumber: '01022334455',
       rating: 4.8,
       completedJobs: 94,
       isVerified: true,
-      isOnline: true,
+      approvalStatus: 'approved',
     ),
     TechnicianItemModel(
       id: 'TECH-3',
-      name: 'م. إبراهيم عادل',
+      name: 'م. كريم طارق (طلب جديد)',
       specialty: 'كهرباء',
-      city: 'المنصورة',
+      city: 'الجيزة',
       phone: '01099881122',
-      distanceKm: 0.9,
+      distanceKm: 1.5,
+      nationalId: '29611050108834',
+      idFrontPhoto: 'هوية_كريم_طارق_أمامي.jpg',
+      idBackPhoto: 'هوية_كريم_طارق_خلفي.jpg',
+      certificatePhoto: 'شهادة_خبرة_كهرباء_وإنتركم.jpg',
+      experienceYears: 4,
+      walletNumber: '01099881122',
       rating: 4.7,
-      completedJobs: 63,
+      completedJobs: 0,
       isVerified: false,
-      isOnline: true,
+      approvalStatus: 'pending',
     ),
   ];
 
@@ -145,12 +167,12 @@ class AppStateService extends ChangeNotifier {
       id: 'KH-9041',
       serviceName: 'تكييف وتبريد',
       description: 'التكييف لا يبرد ويحتاج شحن فريون وتنظيف الوحدة الداخلية والخارجية',
-      attachedPhotos: ['صورة_الوحدة_الداخلية.jpg', 'صورة_عداد_الفريون.jpg'],
+      attachedPhotos: ['قبل_الوحدة_الداخلية.jpg', 'بعد_تنظيف_وشحن_الفريون.jpg'],
       city: 'القاهرة',
       address: 'مدينة نصر - شارع عباس العقاد - برج التطبيقيين الدور 5',
       mapCoordinates: '30.0561 N, 31.3301 E (تم التحديد على خرائط جوجل)',
       appointmentSlot: 'اليوم - الفترة المسائية (04:00 م - 07:00 م)',
-      assignmentMode: 'تلقائي حسب الأقرب جغرافياً',
+      assignmentMode: 'استلام ومقارنة عروض أسعار (نظام صيانة)',
       customerName: 'أحمد محمود',
       customerPhone: '01012345678',
       pinCode: '4829',
@@ -162,8 +184,8 @@ class AppStateService extends ChangeNotifier {
       technicianPhone: '01066554433',
       isPaid: false,
       chatMessages: [
-        'النظام: تم تعيين م. مصطفى السيد تلقائياً كأقرب فني معتمد لموقعك.',
-        'م. مصطفى السيد: أهلاً بحضرتك يا فندم، يمكنك الدفع عبر فودافون كاش أو إنستا باي من شاشة التتبع.',
+        'النظام: تم تعيين م. مصطفى السيد (فني موثق الهوية لدى الإدارة).',
+        'م. مصطفى السيد: أهلاً بحضرتك يا فندم، سأقوم بتصوير العطل قبل وبعد الصيانة لإصدار شهادة الضمان.',
       ],
     ),
   ];
@@ -227,7 +249,7 @@ class AppStateService extends ChangeNotifier {
         lastSyncStatus = 'تنبيه سحابة Supabase: كود ${res.statusCode}';
       }
 
-      final notifUri = Uri.parse('$_cleanBaseUrl/rest/v1/notifications?select=*&order=id.desc&limit=8');
+      final notifUri = Uri.parse('$_cleanBaseUrl/rest/v1/notifications?select=*&order=id.desc&limit=10');
       final notifRes = await http.get(notifUri, headers: _headers).timeout(const Duration(seconds: 5));
       if (notifRes.statusCode >= 200 && notifRes.statusCode < 300) {
         final List<dynamic> nData = jsonDecode(utf8.decode(notifRes.bodyBytes)) as List<dynamic>;
@@ -241,7 +263,7 @@ class AppStateService extends ChangeNotifier {
       return isCloudConnected;
     } catch (e) {
       isCloudConnected = false;
-      lastSyncStatus = 'يعمل بالذاكرة المحلية (اضغط ربط Supabase للمزامنة)';
+      lastSyncStatus = 'يعمل بالذاكرة المحلية (اضغط ربط السحابة للمزامنة)';
       notifyListeners();
       return false;
     }
@@ -269,6 +291,78 @@ class AppStateService extends ChangeNotifier {
       final uri = Uri.parse('$_cleanBaseUrl/rest/v1/notifications');
       await http.post(uri, headers: _headers, body: jsonEncode({'message': message}));
     } catch (_) {}
+  }
+
+  // تسجيل فني جديد برفع الهوية وإرساله لمراجعة الإدارة
+  TechnicianItemModel registerNewTechnicianApplication({
+    required String name,
+    required String phone,
+    required String specialty,
+    required String city,
+    required String nationalId,
+    required String idFrontPhoto,
+    required String idBackPhoto,
+    required String certificatePhoto,
+    required int experienceYears,
+    required String walletNumber,
+  }) {
+    final id = 'TECH-${technicians.length + 10}';
+    final tech = TechnicianItemModel(
+      id: id,
+      name: name,
+      specialty: specialty,
+      city: city,
+      phone: phone,
+      distanceKm: 1.8,
+      nationalId: nationalId,
+      idFrontPhoto: idFrontPhoto,
+      idBackPhoto: idBackPhoto,
+      certificatePhoto: certificatePhoto,
+      experienceYears: experienceYears,
+      walletNumber: walletNumber,
+      rating: 5.0,
+      completedJobs: 0,
+      isVerified: false,
+      approvalStatus: 'pending',
+    );
+    technicians.insert(0, tech);
+    notifyListeners();
+    _pushNotificationToSupabase(
+      'طلب توثيق فني جديد: ($name - $specialty - $city) برقم هوية [$nationalId] بانتظار موافقة الإدارة.',
+    );
+    return tech;
+  }
+
+  // قرار الإدارة بالموافقة أو الرفض بعد فحص الهوية
+  void reviewTechnicianApplication(String techId, {required bool approve}) {
+    final idx = technicians.indexWhere((t) => t.id == techId);
+    if (idx == -1) return;
+    final tech = technicians[idx];
+    tech.isVerified = approve;
+    tech.approvalStatus = approve ? 'approved' : 'rejected';
+    notifyListeners();
+    _pushNotificationToSupabase(
+      approve
+          ? 'موافقة الإدارة ✅: تم التحقق من هوية الفني (${tech.name}) واعتماده رسمياً لاستقبال الطلبات!'
+          : 'قرار الإدارة ❌: تم رفض طلب تسجيل الفني (${tech.name}) لعدموضوح صورة الهوية.',
+    );
+  }
+
+  // إضافة صورة قبل أو بعد الصيانة للطلب وتزامنها مع Supabase
+  void addOrderMaintenancePhoto(String orderId, {required bool isAfterPhoto}) {
+    final idx = orders.indexWhere((o) => o.id == orderId);
+    if (idx == -1) return;
+    final order = orders[idx];
+    final prefix = isAfterPhoto ? 'بعد_الإصلاح' : 'قبل_الصيانة';
+    final fileName = '${prefix}_${DateTime.now().second}.jpg';
+    order.attachedPhotos.add(fileName);
+    order.chatMessages.add(
+      isAfterPhoto
+          ? 'توثيق الفني: تم رفع صورة بعد إتمام الصيانة ($fileName) وتفعيل شهادة الضمان الذهبي.'
+          : 'توثيق الفني: تم رفع صورة العطل قبل بدء الصيانة ($fileName).',
+    );
+    notifyListeners();
+    _pushOrderToSupabase(order, isUpdate: true);
   }
 
   void markOrderPaid(String orderId, String methodLabel, String referenceCode) {
@@ -339,14 +433,16 @@ class AppStateService extends ChangeNotifier {
     final String pin = (1000 + (DateTime.now().millisecond % 8999)).toString();
     final String id = 'KH-${DateTime.now().millisecondsSinceEpoch.toString().substring(8)}';
 
-    TechnicianItemModel chosenTech = technicians.first;
+    final approvedTechs = technicians.where((t) => t.isVerified).toList();
+    TechnicianItemModel chosenTech = approvedTechs.isNotEmpty ? approvedTechs.first : technicians.first;
+
     if (manualTechId != null) {
       for (final t in technicians) {
         if (t.id == manualTechId) chosenTech = t;
       }
     } else {
-      for (final t in technicians) {
-        if (t.specialty == serviceName && t.isVerified) {
+      for (final t in approvedTechs) {
+        if (t.specialty == serviceName) {
           chosenTech = t;
           break;
         }
@@ -354,17 +450,21 @@ class AppStateService extends ChangeNotifier {
     }
 
     final initialChats = <String>[
-      'النظام: تم تسجيل الطلب وإرساله لأقرب فني معتمد في منطقتك.',
+      'النظام: تم تسجيل الطلب وتعيين المزود المعتمد (${chosenTech.name}).',
     ];
     if (isPaidInitially && paymentRef != null) {
       initialChats.add('إيصال دفع مسبق: تم سداد $price ج.م عبر $paymentMethod (مرجع: $paymentRef)');
     }
 
+    final normalizedPhotos = photos.isEmpty
+        ? ['قبل_صورة_العطل_1.jpg']
+        : photos.map((p) => p.startsWith('قبل_') || p.startsWith('بعد_') ? p : 'قبل_$p').toList();
+
     final order = OrderItemModel(
       id: id,
       serviceName: serviceName,
       description: description.trim().isEmpty ? 'طلب صيانة وفحص شامل ($serviceName)' : description.trim(),
-      attachedPhotos: photos.isEmpty ? ['صورة_العطل_1.jpg'] : photos,
+      attachedPhotos: normalizedPhotos,
       city: selectedCity,
       address: address.trim().isEmpty ? '$selectedCity - العنوان المسجل على الخريطة' : address.trim(),
       mapCoordinates: mapCoords,
@@ -404,11 +504,14 @@ class AppStateService extends ChangeNotifier {
     } else if (next == 2) {
       order.chatMessages.add('الفني: أنا في الطريق إليك الآن عبر موقع الخريطة المحدد.');
     } else if (next == 3) {
-      order.chatMessages.add('الفني: وصلت للموقع وتم مطابقة كود PIN (${order.pinCode}) وبدء العمل.');
+      order.chatMessages.add('الفني: وصلت للموقع وتم مطابقة كود PIN (${order.pinCode}) وتصوير العطل قبل البدء.');
     } else if (next == 4) {
       order.isPaid = true;
+      if (order.afterPhotos.isEmpty) {
+        order.attachedPhotos.add('بعد_إتمام_الإصلاح_الموثق.jpg');
+      }
       technicianEarnings += (order.price * 0.85);
-      order.chatMessages.add('النظام: اكتمل الطلب بنجاح وتم إصدار الفاتورة وشهادة الضمان لمدة 30 يوماً.');
+      order.chatMessages.add('النظام: اكتمل الطلب بنجاح وتم توثيق صور (قبل وبعد) وإصدار شهادة الضمان (${order.warrantyNumber}).');
     }
     notifyListeners();
     _pushOrderToSupabase(order, isUpdate: true);
@@ -418,7 +521,7 @@ class AppStateService extends ChangeNotifier {
   void rejectOrderByTechnician(String orderId) {
     final idx = orders.indexWhere((o) => o.id == orderId);
     if (idx == -1) return;
-    orders[idx].technicianName = 'جاري إعادة التعيين التلقائي لأقرب فني بديل...';
+    orders[idx].technicianName = 'جاري إعادة التعيين التلقائي لأقرب فني معتمد بديل...';
     orders[idx].statusIndex = 0;
     notifyListeners();
     _pushOrderToSupabase(orders[idx], isUpdate: true);
@@ -456,8 +559,8 @@ class AppStateService extends ChangeNotifier {
   void toggleTechnicianVerification(String techId) {
     final idx = technicians.indexWhere((t) => t.id == techId);
     if (idx != -1) {
-      technicians[idx].isVerified = !technicians[idx].isVerified;
-      notifyListeners();
+      final newState = !technicians[idx].isVerified;
+      reviewTechnicianApplication(techId, approve: newState);
     }
   }
 

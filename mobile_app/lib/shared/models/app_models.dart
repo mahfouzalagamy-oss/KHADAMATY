@@ -29,10 +29,17 @@ class TechnicianItemModel {
   final String city;
   final String phone;
   final double distanceKm;
+  final String nationalId;
+  final String idFrontPhoto;
+  final String idBackPhoto;
+  final String certificatePhoto;
+  final int experienceYears;
+  final String walletNumber;
   double rating;
   int completedJobs;
   bool isVerified;
   bool isOnline;
+  String approvalStatus; // 'approved', 'pending', 'rejected'
 
   TechnicianItemModel({
     required this.id,
@@ -41,11 +48,24 @@ class TechnicianItemModel {
     required this.city,
     required this.phone,
     required this.distanceKm,
+    this.nationalId = '29405120102938',
+    this.idFrontPhoto = 'بطاقة_الهوية_أمامي.jpg',
+    this.idBackPhoto = 'بطاقة_الهوية_خلفي.jpg',
+    this.certificatePhoto = 'شهادة_الخبرة_والفيش.jpg',
+    this.experienceYears = 5,
+    this.walletNumber = '01012345678',
     this.rating = 4.9,
     this.completedJobs = 42,
     this.isVerified = true,
     this.isOnline = true,
+    this.approvalStatus = 'approved',
   });
+
+  String get approvalStatusArabic {
+    if (approvalStatus == 'approved' && isVerified) return 'معتمد وموثق بالهوية ✅';
+    if (approvalStatus == 'rejected') return 'مرفوض من الإدارة ❌';
+    return 'قيد مراجعة الإدارة للهوية ⏳';
+  }
 }
 
 class OrderItemModel {
@@ -109,6 +129,14 @@ class OrderItemModel {
 
   String get statusText => statusLabels[statusIndex.clamp(0, 4)];
 
+  List<String> get beforePhotos =>
+      attachedPhotos.where((p) => !p.startsWith('بعد_')).toList();
+
+  List<String> get afterPhotos =>
+      attachedPhotos.where((p) => p.startsWith('بعد_')).toList();
+
+  String get warrantyNumber => 'WAR-${id.replaceAll("KH-", "")}-2026';
+
   Map<String, dynamic> toSupabaseJson() => {
         'id': id,
         'service_name': serviceName,
@@ -141,7 +169,7 @@ class OrderItemModel {
       id: (json['id'] ?? 'KH-0000').toString(),
       serviceName: (json['service_name'] ?? 'صيانة عامة').toString(),
       description: (json['description'] ?? '').toString(),
-      attachedPhotos: rawPhotos is List ? rawPhotos.map((e) => e.toString()).toList() : ['صورة_العطل.jpg'],
+      attachedPhotos: rawPhotos is List ? rawPhotos.map((e) => e.toString()).toList() : ['قبل_صورة_العطل.jpg'],
       city: (json['city'] ?? 'القاهرة').toString(),
       address: (json['address'] ?? '').toString(),
       mapCoordinates: (json['map_coordinates'] ?? '').toString(),

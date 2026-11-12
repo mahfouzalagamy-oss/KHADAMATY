@@ -5,6 +5,7 @@ import '../../core/theme/theme.dart';
 import '../../shared/models/app_models.dart';
 import '../../shared/widgets/payment_sandbox_modal.dart';
 import '../../shared/widgets/role_header_bar.dart';
+import '../../shared/widgets/warranty_certificate_modal.dart';
 
 class TrackOrderScreen extends StatefulWidget {
   final String? orderId;
@@ -41,7 +42,7 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
           body: SafeArea(
             child: Center(
               child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 920),
+                constraints: const BoxConstraints(maxWidth: 940),
                 child: Column(
                   children: [
                     const RoleHeaderBar(),
@@ -64,13 +65,13 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
                                       spacing: 10,
                                       runSpacing: 8,
                                       children: [
-                                        Text('تتبع حالة الطلب #${order.id} (${order.serviceName})', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+                                        Text('تتبع حالة الطلب #${order.id} (${order.serviceName})', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: AppColors.customerPrimary)),
                                         Chip(
                                           label: Text(
                                             order.isPaid ? 'مدفوع ومؤكد ✅' : 'بانتظار السداد (${order.price} ج.م)',
                                             style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
                                           ),
-                                          backgroundColor: order.isPaid ? AppColors.success : AppColors.accentAmber,
+                                          backgroundColor: order.isPaid ? AppColors.success : AppColors.syaanhOrange,
                                         ),
                                       ],
                                     ),
@@ -78,9 +79,9 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
                                     Text('الوصف: ${order.description}'),
                                     Text('الموقع: ${order.address} | ${order.mapCoordinates}', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
                                     Text('وسيلة الدفع: ${order.paymentMethod} | القيمة: ${order.price} ج.م', style: const TextStyle(fontWeight: FontWeight.bold)),
-                                    Text('الفني المعين: ${order.technicianName} (${order.technicianPhone}) | كود الأمان PIN: ${order.pinCode}', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.customerPrimary)),
+                                    Text('الفني المعين (موثق الهوية): ${order.technicianName} | كود الأمان PIN: ${order.pinCode}', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.customerPrimary)),
                                     const SizedBox(height: 16),
-                                    const Text('شريط تتبع الحالة الخماسي (جديد ← مقبول ← في الطريق ← قيد التنفيذ ← مكتمل):', style: TextStyle(fontWeight: FontWeight.bold)),
+                                    const Text('مراحل التنفيذ الخمس (جديد ← مقبول ← في الطريق ← قيد التنفيذ ← مكتمل):', style: TextStyle(fontWeight: FontWeight.bold)),
                                     const SizedBox(height: 10),
                                     Wrap(
                                       spacing: 8,
@@ -136,16 +137,119 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
                                             },
                                           ),
                                         ],
+                                        ElevatedButton.icon(
+                                          style: ElevatedButton.styleFrom(backgroundColor: AppColors.customerPrimary),
+                                          icon: const Icon(Icons.picture_as_pdf),
+                                          label: const Text('شهادة الضمان والفاتورة (PDF)'),
+                                          onPressed: () => WarrantyCertificateModal.show(context, order),
+                                        ),
                                         if (order.statusIndex < 4)
                                           OutlinedButton.icon(
                                             icon: const Icon(Icons.fast_forward),
                                             label: Text('تحديث الحالة إلى: ${OrderItemModel.statusLabels[(order.statusIndex + 1).clamp(0, 4)]}'),
                                             onPressed: () => state.advanceOrderStatus(order.id),
                                           ),
-                                        TextButton.icon(
-                                          icon: const Icon(Icons.home),
-                                          label: const Text('العودة للرئيسية'),
-                                          onPressed: () => Navigator.pushReplacementNamed(context, AppRoutes.home),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 14),
+                            // قسم توثيق الصور (قبل وبعد الصيانة)
+                            Card(
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              child: Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  children: [
+                                    const Row(
+                                      children: [
+                                        Icon(Icons.camera_enhance, color: AppColors.syaanhOrange),
+                                        SizedBox(width: 8),
+                                        Expanded(
+                                          child: Text(
+                                            'توثيق جودة الصيانة بالصور (قبل البدء وبعد الإصلاح)',
+                                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: AppColors.customerPrimary),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Wrap(
+                                      spacing: 12,
+                                      runSpacing: 12,
+                                      children: [
+                                        SizedBox(
+                                          width: 420,
+                                          child: Container(
+                                            padding: const EdgeInsets.all(12),
+                                            decoration: BoxDecoration(
+                                              color: const Color(0xFFFEF2F2),
+                                              borderRadius: BorderRadius.circular(12),
+                                              border: Border.all(color: AppColors.danger.withAlpha(90)),
+                                            ),
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                const Text('1. صور العطل قبل الصيانة (Before):', style: TextStyle(fontWeight: FontWeight.bold)),
+                                                const SizedBox(height: 6),
+                                                Wrap(
+                                                  spacing: 6,
+                                                  children: order.beforePhotos
+                                                      .map((p) => Chip(
+                                                            avatar: const Icon(Icons.image, size: 15, color: AppColors.danger),
+                                                            label: Text(p, style: const TextStyle(fontSize: 11)),
+                                                          ))
+                                                      .toList(),
+                                                ),
+                                                const SizedBox(height: 6),
+                                                OutlinedButton.icon(
+                                                  icon: const Icon(Icons.add_a_photo, size: 15),
+                                                  label: const Text('إرفاق صورة قبل البدء'),
+                                                  onPressed: () => state.addOrderMaintenancePhoto(order.id, isAfterPhoto: false),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                        SizedBox(
+                                          width: 420,
+                                          child: Container(
+                                            padding: const EdgeInsets.all(12),
+                                            decoration: BoxDecoration(
+                                              color: const Color(0xFFF0FDF4),
+                                              borderRadius: BorderRadius.circular(12),
+                                              border: Border.all(color: AppColors.success),
+                                            ),
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                const Text('2. صور إتمام الإصلاح بعد الصيانة (After):', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.success)),
+                                                const SizedBox(height: 6),
+                                                if (order.afterPhotos.isEmpty)
+                                                  const Text('لم يتم رفع صورة بعد الإصلاح حتى الآن', style: TextStyle(fontSize: 12, color: AppColors.textSecondary))
+                                                else
+                                                  Wrap(
+                                                    spacing: 6,
+                                                    children: order.afterPhotos
+                                                        .map((p) => Chip(
+                                                              avatar: const Icon(Icons.verified, size: 15, color: AppColors.success),
+                                                              label: Text(p, style: const TextStyle(fontSize: 11)),
+                                                            ))
+                                                        .toList(),
+                                                  ),
+                                                const SizedBox(height: 6),
+                                                ElevatedButton.icon(
+                                                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.success),
+                                                  icon: const Icon(Icons.add_a_photo, size: 15),
+                                                  label: const Text('رفع صورة بعد الصيانة وتفعيل الضمان'),
+                                                  onPressed: () => state.addOrderMaintenancePhoto(order.id, isAfterPhoto: true),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
                                         ),
                                       ],
                                     ),
