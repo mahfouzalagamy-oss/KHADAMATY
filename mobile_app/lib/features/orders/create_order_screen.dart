@@ -19,7 +19,7 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
   final _priceCtrl = TextEditingController(text: '250');
 
   final List<String> _photos = ['صورة_موقع_العطل.jpg'];
-  String _mapCoordinates = '30.0444° N, 31.2357° E (تم تحديد الدبوس على خريطة Google Maps)';
+  String _mapCoordinates = '30.0444 N, 31.2357 E (تم تحديد الدبوس على خريطة Google Maps)';
   String _appointmentSlot = 'اليوم - الفترة المسائية (04:00 م - 07:00 م)';
   String _assignmentMode = 'تلقائي حسب الأقرب جغرافياً';
   String? _selectedTechId;
@@ -59,7 +59,7 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
     );
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('تم إنشاء الطلب #${order.id} وتعيين الفني ${order.technicianName}')),
+      SnackBar(content: Text('تم إنشاء الطلب #${order.id} وإرساله إلى سحابة Supabase والفني ${order.technicianName}')),
     );
     Navigator.pushReplacementNamed(context, AppRoutes.trackOrder, arguments: {'orderId': order.id});
   }
@@ -180,7 +180,7 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
                                     label: const Text('تحديث إحداثيات GPS الحالية'),
                                     onPressed: () {
                                       setState(() {
-                                        _mapCoordinates = '30.0595° N, 31.2230° E (${state.selectedCity} - موقع دقيق GPS)';
+                                        _mapCoordinates = '30.0595 N, 31.2230 E (${state.selectedCity} - موقع دقيق GPS)';
                                       });
                                     },
                                   ),

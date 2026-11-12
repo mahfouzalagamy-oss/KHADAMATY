@@ -6,16 +6,12 @@ import '../../shared/models/app_models.dart';
 
 class AppStateService extends ChangeNotifier {
   static final AppStateService instance = AppStateService._internal();
-  AppStateService._internal() {
-    if (supabaseUrl.isNotEmpty && supabaseAnonKey.isNotEmpty) {
-      startRealtimePolling();
-    }
-  }
+  AppStateService._internal();
 
   String supabaseUrl = '';
   String supabaseAnonKey = '';
   bool isCloudConnected = false;
-  String lastSyncStatus = 'يعمل بالوضع المحلي (اضغط "ربط Supabase" للمزامنة الحية بين الهواتف)';
+  String lastSyncStatus = 'يعمل بالوضع المحلي (اضغط "ربط Supabase" أعلى الشاشة للمزامنة الحية بين الهواتف)';
   Timer? _syncTimer;
 
   int currentRole = 0;
@@ -177,6 +173,10 @@ class AppStateService extends ChangeNotifier {
       };
 
   String get _cleanBaseUrl => supabaseUrl.trim().replaceAll(RegExp(r'/$'), '');
+
+  Future<bool> connectSupabase(String url, String key) {
+    return configureSupabaseConnection(url, key);
+  }
 
   Future<bool> configureSupabaseConnection(String url, String key) async {
     supabaseUrl = url.trim();

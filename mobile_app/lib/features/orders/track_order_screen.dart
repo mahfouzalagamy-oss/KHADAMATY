@@ -125,7 +125,6 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
                               ),
                             ),
                             const SizedBox(height: 14),
-                            // قسم الدردشة المباشرة بين العميل والفني
                             Card(
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                               child: Padding(
@@ -133,7 +132,7 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.stretch,
                                   children: [
-                                    const Text('الدردشة الفورية مع الفني والعميل:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                                    const Text('الدردشة الفورية مع الفني والعميل (متزامنة عبر Supabase):', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                                     const SizedBox(height: 8),
                                     ...order.chatMessages.map((msg) => Padding(
                                           padding: const EdgeInsets.symmetric(vertical: 4),
@@ -169,7 +168,6 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
                               ),
                             ),
                             const SizedBox(height: 14),
-                            // قسم التقييم بعد إتمام الخدمة
                             Card(
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                               child: Padding(

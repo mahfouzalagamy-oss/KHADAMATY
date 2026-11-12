@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../core/routes/app_routes.dart';
 import '../../core/services/app_state_service.dart';
 import '../../core/theme/theme.dart';
-import '../../shared/models/app_models.dart';
 import '../../shared/widgets/role_header_bar.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -62,7 +61,6 @@ class HomeScreen extends StatelessWidget {
     return _buildCustomerCatalogView(context, state);
   }
 
-  // 1. واجهة العميل (كتالوج الخدمات + الأسعار + الطلبات النشطة)
   Widget _buildCustomerCatalogView(BuildContext context, AppStateService state) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -139,7 +137,7 @@ class HomeScreen extends StatelessWidget {
           },
         ),
         const SizedBox(height: 20),
-        const Text('طلباتي الحالية والسابقة (اضغط للتتبع والدردشة والفاتورة):', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+        const Text('طلباتي الحالية والسابقة (متزامنة مع Supabase):', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
         const SizedBox(height: 8),
         ...state.orders.map((o) => Card(
               margin: const EdgeInsets.only(bottom: 10),
@@ -159,7 +157,6 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  // 2. واجهة الفني (استقبال الطلبات، قبول/رفض، تحديث المراحل الـ 5، الأرباح)
   Widget _buildTechnicianDashboard(BuildContext context, AppStateService state) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -263,7 +260,6 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  // 3. لوحة تحكم الأدمن (إدارة الفنيين + الخدمات والأسعار + الطلبات والتقارير)
   Widget _buildAdminDashboard(BuildContext context, AppStateService state) {
     final int totalSales = state.orders.fold<int>(0, (sum, o) => sum + o.price);
     final int netRevenue = (totalSales * 0.15).toInt();
