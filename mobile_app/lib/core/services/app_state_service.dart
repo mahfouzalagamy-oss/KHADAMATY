@@ -5,11 +5,11 @@ import 'package:http/http.dart' as http;
 import '../../shared/models/app_models.dart';
 
 class AppStateService extends ChangeNotifier {
-  static final AppStateService instance = AppStateService._internal();
-  AppStateService._internal();
+  static final AppStateService instance = AppStateService._internal() { Future.microtask(() => startRealtimePolling()); }
+  AppStateService._internal() { Future.microtask(() => startRealtimePolling()); }
 
-  String supabaseUrl = '';
-  String supabaseAnonKey = '';
+  String supabaseUrl = 'https://dccgwosimmcwfwcffghd.supabase.co';
+  String supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRjY2d3b3NpbW1jd2Z3Y2ZmZ2hkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ0OTY3MTMsImV4cCI6MjExMDA3MjcxM30.7w6V6RGpil3vZnDqyIE7G4X2IdaP6A4qu-akg0RRk-c';
   bool isCloudConnected = false;
   String lastSyncStatus = 'يعمل بالوضع المحلي (اضغط "ربط Supabase" أعلى الشاشة للمزامنة الحية بين الهواتف)';
   Timer? _syncTimer;
