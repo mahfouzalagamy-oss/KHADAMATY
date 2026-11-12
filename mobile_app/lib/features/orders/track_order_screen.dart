@@ -3,6 +3,7 @@ import '../../core/routes/app_routes.dart';
 import '../../core/services/app_state_service.dart';
 import '../../core/theme/theme.dart';
 import '../../shared/models/app_models.dart';
+import '../../shared/widgets/payment_sandbox_modal.dart';
 import '../../shared/widgets/role_header_bar.dart';
 
 class TrackOrderScreen extends StatefulWidget {
@@ -65,15 +66,18 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
                                       children: [
                                         Text('تتبع حالة الطلب #${order.id} (${order.serviceName})', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
                                         Chip(
-                                          label: Text('الحالة: ${order.statusText}', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-                                          backgroundColor: AppColors.customerPrimary,
+                                          label: Text(
+                                            order.isPaid ? 'مدفوع ومؤكد ✅' : 'بانتظار السداد (${order.price} ج.م)',
+                                            style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                                          ),
+                                          backgroundColor: order.isPaid ? AppColors.success : AppColors.accentAmber,
                                         ),
                                       ],
                                     ),
                                     const SizedBox(height: 8),
                                     Text('الوصف: ${order.description}'),
                                     Text('الموقع: ${order.address} | ${order.mapCoordinates}', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-                                    Text('الموعد: ${order.appointmentSlot} | التعيين: ${order.assignmentMode}', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                                    Text('وسيلة الدفع: ${order.paymentMethod} | القيمة: ${order.price} ج.م', style: const TextStyle(fontWeight: FontWeight.bold)),
                                     Text('الفني المعين: ${order.technicianName} (${order.technicianPhone}) | كود الأمان PIN: ${order.pinCode}', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.customerPrimary)),
                                     const SizedBox(height: 16),
                                     const Text('شريط تتبع الحالة الخماسي (جديد ← مقبول ← في الطريق ← قيد التنفيذ ← مكتمل):', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -93,26 +97,51 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
                                         );
                                       }),
                                     ),
-                                    const SizedBox(height: 14),
+                                    const SizedBox(height: 16),
                                     Wrap(
                                       spacing: 8,
                                       runSpacing: 8,
                                       children: [
-                                        if (order.statusIndex < 4)
+                                        if (!order.isPaid) ...[
                                           ElevatedButton.icon(
+                                            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFE60000)),
+                                            icon: const Icon(Icons.phone_android),
+                                            label: Text('دفع فودافون كاش (${order.price} ج.م)'),
+                                            onPressed: () {
+                                              PaymentSandboxModal.show(
+                                                context,
+                                                title: 'سداد الطلب #${order.id}',
+                                                amount: order.price,
+                                                initialGateway: 'vodafone',
+                                                onPaymentSuccess: (method, ref) {
+                                                  state.markOrderPaid(order.id, method, ref);
+                                                },
+                                              );
+                                            },
+                                          ),
+                                          ElevatedButton.icon(
+                                            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4C1D95)),
+                                            icon: const Icon(Icons.account_balance),
+                                            label: Text('دفع إنستا باي (${order.price} ج.م)'),
+                                            onPressed: () {
+                                              PaymentSandboxModal.show(
+                                                context,
+                                                title: 'سداد الطلب #${order.id}',
+                                                amount: order.price,
+                                                initialGateway: 'instapay',
+                                                onPaymentSuccess: (method, ref) {
+                                                  state.markOrderPaid(order.id, method, ref);
+                                                },
+                                              );
+                                            },
+                                          ),
+                                        ],
+                                        if (order.statusIndex < 4)
+                                          OutlinedButton.icon(
                                             icon: const Icon(Icons.fast_forward),
                                             label: Text('تحديث الحالة إلى: ${OrderItemModel.statusLabels[(order.statusIndex + 1).clamp(0, 4)]}'),
                                             onPressed: () => state.advanceOrderStatus(order.id),
                                           ),
-                                        OutlinedButton.icon(
-                                          icon: const Icon(Icons.receipt_long),
-                                          label: Text('الفاتورة والدفع (${order.price} ج.م - ${order.paymentMethod})'),
-                                          onPressed: () {
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              SnackBar(content: Text('فاتورة ضريبية موثقة #${order.id} - ضمان ساري لمدة 30 يوماً')),
-                                            );
-                                          },
-                                        ),
                                         TextButton.icon(
                                           icon: const Icon(Icons.home),
                                           label: const Text('العودة للرئيسية'),
@@ -132,7 +161,7 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.stretch,
                                   children: [
-                                    const Text('الدردشة الفورية مع الفني والعميل (متزامنة عبر Supabase):', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                                    const Text('الدردشة الفورية وإيصالات الدفع (متزامنة عبر Supabase):', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                                     const SizedBox(height: 8),
                                     ...order.chatMessages.map((msg) => Padding(
                                           padding: const EdgeInsets.symmetric(vertical: 4),

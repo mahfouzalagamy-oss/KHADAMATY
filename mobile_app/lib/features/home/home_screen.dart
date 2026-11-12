@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/routes/app_routes.dart';
 import '../../core/services/app_state_service.dart';
 import '../../core/theme/theme.dart';
+import '../../shared/widgets/payment_sandbox_modal.dart';
 import '../../shared/widgets/role_header_bar.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -81,7 +82,7 @@ class HomeScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('اطلب فني صيانة منزلي معتمد في مصر', style: TextStyle(color: Colors.white, fontSize: 19, fontWeight: FontWeight.w900)),
-                  Text('سباكة • كهرباء • تكييف • أجهزة منزلية — بتسعير واضح وضمان 30 يوماً', style: TextStyle(color: Colors.white70, fontSize: 13)),
+                  Text('ادفع بسهولة عبر فودافون كاش أو إنستا باي أو نقداً عند الإتمام', style: TextStyle(color: Colors.white70, fontSize: 13)),
                 ],
               ),
               ElevatedButton.icon(
@@ -93,7 +94,77 @@ class HomeScreen extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: 12),
+        Card(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 10,
+              runSpacing: 10,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.account_balance_wallet, color: AppColors.customerPrimary),
+                    const SizedBox(width: 8),
+                    Text(
+                      'رصيد محفظتك الحالي: ${state.customerWallet.toInt()} ج.م',
+                      style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15),
+                    ),
+                  ],
+                ),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFE60000)),
+                      icon: const Icon(Icons.phone_android, size: 16),
+                      label: const Text('شحن فودافون كاش (+200 ج.م)'),
+                      onPressed: () {
+                        PaymentSandboxModal.show(
+                          context,
+                          title: 'شحن محفظة خدماتي',
+                          amount: 200,
+                          initialGateway: 'vodafone',
+                          onPaymentSuccess: (method, ref) {
+                            state.rechargeWalletViaSandbox(200, method, ref);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('تم شحن 200 ج.م بنجاح عبر $method (مرجع: $ref)')),
+                            );
+                          },
+                        );
+                      },
+                    ),
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4C1D95)),
+                      icon: const Icon(Icons.account_balance, size: 16),
+                      label: const Text('شحن إنستا باي (+200 ج.م)'),
+                      onPressed: () {
+                        PaymentSandboxModal.show(
+                          context,
+                          title: 'شحن محفظة خدماتي',
+                          amount: 200,
+                          initialGateway: 'instapay',
+                          onPaymentSuccess: (method, ref) {
+                            state.rechargeWalletViaSandbox(200, method, ref);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('تم شحن 200 ج.م بنجاح عبر $method (مرجع: $ref)')),
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
         const Text('كتالوج الخدمات والتسعير الاسترشادي (اضغط لطلب الخدمة):', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
         const SizedBox(height: 10),
         LayoutBuilder(
@@ -143,13 +214,13 @@ class HomeScreen extends StatelessWidget {
               margin: const EdgeInsets.only(bottom: 10),
               child: ListTile(
                 title: Text('${o.serviceName} (#${o.id}) - ${o.statusText}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                subtitle: Text('${o.address} | الموعد: ${o.appointmentSlot} | السعر: ${o.price} ج.م'),
+                subtitle: Text('${o.address} | السعر: ${o.price} ج.م | ${o.isPaid ? "مدفوع ✅" : "غير مدفوع"}'),
                 trailing: ElevatedButton(
                   onPressed: () {
                     state.activeOrderId = o.id;
                     Navigator.pushNamed(context, AppRoutes.trackOrder, arguments: {'orderId': o.id});
                   },
-                  child: const Text('تتبع الحالة'),
+                  child: const Text('تتبع ودفع'),
                 ),
               ),
             )),
@@ -176,7 +247,7 @@ class HomeScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('بوابة الفني المعتمد - استقبال وإدارة المهام', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-                  Text('استقبل الطلبات القريبة، اقبل أو ارفض، وحدّث حالة العمل خطوة بخطوة', style: TextStyle(color: Colors.white70, fontSize: 13)),
+                  Text('استقبل الطلبات القريبة، وتابع حالة سداد العميل عبر فودافون كاش أو إنستا باي', style: TextStyle(color: Colors.white70, fontSize: 13)),
                 ],
               ),
               Container(
@@ -191,8 +262,6 @@ class HomeScreen extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-        const Text('الطلبات الواردة للفني (تحديث: جديد ← مقبول ← في الطريق ← قيد التنفيذ ← مكتمل):', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 10),
         ...state.orders.map((o) => Card(
               margin: const EdgeInsets.only(bottom: 12),
               child: Padding(
@@ -205,10 +274,10 @@ class HomeScreen extends StatelessWidget {
                       spacing: 10,
                       children: [
                         Text('طلب #${o.id} - ${o.serviceName} (${o.price} ج.م)', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                        Chip(label: Text('الحالة الحالية: ${o.statusText}')),
+                        Chip(label: Text('${o.statusText} | ${o.isPaid ? "مدفوع ✅" : "بانتظار الدفع"}')),
                       ],
                     ),
-                    Text('العميل: ${o.customerName} (${o.customerPhone}) | الدفع: ${o.paymentMethod}'),
+                    Text('العميل: ${o.customerName} (${o.customerPhone}) | البوابة: ${o.paymentMethod}'),
                     Text('العنوان والموعد: ${o.address} | ${o.appointmentSlot}'),
                     const SizedBox(height: 10),
                     Wrap(
@@ -247,7 +316,7 @@ class HomeScreen extends StatelessWidget {
                           ),
                         TextButton.icon(
                           icon: const Icon(Icons.chat),
-                          label: const Text('فتح شاشة التتبع والدردشة'),
+                          label: const Text('فتح شاشة التتبع والإيصال'),
                           onPressed: () => Navigator.pushNamed(context, AppRoutes.trackOrder, arguments: {'orderId': o.id}),
                         ),
                       ],
@@ -297,22 +366,6 @@ class HomeScreen extends StatelessWidget {
                 trailing: ElevatedButton(
                   onPressed: () => state.toggleTechnicianVerification(t.id),
                   child: Text(t.isVerified ? 'معتمد (إيقاف مؤقت)' : 'توثيق واعتماد الفني'),
-                ),
-              ),
-            )),
-        const SizedBox(height: 16),
-        const Text('إدارة كتالوج الخدمات وتحديث الأسعار:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 8),
-        ...state.services.map((s) => Card(
-              margin: const EdgeInsets.only(bottom: 8),
-              child: ListTile(
-                leading: Icon(s.icon, color: s.color),
-                title: Text(s.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                subtitle: Text('السعر الحالي: ${s.priceRange}'),
-                trailing: OutlinedButton.icon(
-                  icon: const Icon(Icons.edit, size: 15),
-                  label: const Text('زيادة السعر +25 ج.م'),
-                  onPressed: () => state.updateServicePrice(s.id, s.minPrice + 25, s.maxPrice + 25),
                 ),
               ),
             )),

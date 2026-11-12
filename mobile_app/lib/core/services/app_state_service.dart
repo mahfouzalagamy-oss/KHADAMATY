@@ -5,13 +5,16 @@ import 'package:http/http.dart' as http;
 import '../../shared/models/app_models.dart';
 
 class AppStateService extends ChangeNotifier {
-  static final AppStateService instance = AppStateService._internal() { Future.microtask(() => startRealtimePolling()); }
-  AppStateService._internal() { Future.microtask(() => startRealtimePolling()); }
+  static final AppStateService instance = AppStateService._internal();
+
+  AppStateService._internal() {
+    Future.microtask(() => startRealtimePolling());
+  }
 
   String supabaseUrl = 'https://dccgwosimmcwfwcffghd.supabase.co';
   String supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRjY2d3b3NpbW1jd2Z3Y2ZmZ2hkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ0OTY3MTMsImV4cCI6MjExMDA3MjcxM30.7w6V6RGpil3vZnDqyIE7G4X2IdaP6A4qu-akg0RRk-c';
   bool isCloudConnected = false;
-  String lastSyncStatus = 'يعمل بالوضع المحلي (اضغط "ربط Supabase" أعلى الشاشة للمزامنة الحية بين الهواتف)';
+  String lastSyncStatus = 'جاري الاتصال التلقائي بسحابة Supabase...';
   Timer? _syncTimer;
 
   int currentRole = 0;
@@ -37,7 +40,7 @@ class AppStateService extends ChangeNotifier {
   ];
 
   final List<String> notifications = [
-    'مرحباً بك في خدماتي KHADAMATY مصر - ضمان 30 يوماً على كافة أعمال الصيانة.',
+    'مرحباً بك في خدماتي KHADAMATY مصر - تم تفعيل الدفع التجريبي عبر فودافون كاش وإنستا باي.',
     'الفني م. مصطفى السيد قريب من موقعك في القاهرة (يبعد 1.2 كم).',
   ];
 
@@ -151,7 +154,7 @@ class AppStateService extends ChangeNotifier {
       customerName: 'أحمد محمود',
       customerPhone: '01012345678',
       pinCode: '4829',
-      paymentMethod: 'بطاقة بنكية (Paymob)',
+      paymentMethod: 'فودافون كاش (Vodafone Cash)',
       statusIndex: 1,
       price: 450,
       technicianId: 'TECH-1',
@@ -160,7 +163,7 @@ class AppStateService extends ChangeNotifier {
       isPaid: false,
       chatMessages: [
         'النظام: تم تعيين م. مصطفى السيد تلقائياً كأقرب فني معتمد لموقعك.',
-        'م. مصطفى السيد: أهلاً بحضرتك يا فندم، تم قبول الطلب وسأتحرك إليك في الموعد.',
+        'م. مصطفى السيد: أهلاً بحضرتك يا فندم، يمكنك الدفع عبر فودافون كاش أو إنستا باي من شاشة التتبع.',
       ],
     ),
   ];
@@ -196,6 +199,7 @@ class AppStateService extends ChangeNotifier {
 
   void startRealtimePolling() {
     _syncTimer?.cancel();
+    if (supabaseUrl.trim().isEmpty || supabaseAnonKey.trim().isEmpty) return;
     syncFromSupabase();
     _syncTimer = Timer.periodic(const Duration(seconds: 4), (_) {
       syncFromSupabase();
@@ -220,7 +224,7 @@ class AppStateService extends ChangeNotifier {
         lastSyncStatus = 'متصل بسحابة Supabase حياً (${orders.length} طلبات متزامنة)';
       } else {
         isCloudConnected = false;
-        lastSyncStatus = 'تنبيه سحابة Supabase: كود ${res.statusCode} (تأكد من تشغيل كود SQL)';
+        lastSyncStatus = 'تنبيه سحابة Supabase: كود ${res.statusCode}';
       }
 
       final notifUri = Uri.parse('$_cleanBaseUrl/rest/v1/notifications?select=*&order=id.desc&limit=8');
@@ -237,7 +241,7 @@ class AppStateService extends ChangeNotifier {
       return isCloudConnected;
     } catch (e) {
       isCloudConnected = false;
-      lastSyncStatus = 'تعذر الاتصال بالسحابة حالياً - يعمل بالذاكرة المحلية';
+      lastSyncStatus = 'يعمل بالذاكرة المحلية (اضغط ربط Supabase للمزامنة)';
       notifyListeners();
       return false;
     }
@@ -265,6 +269,29 @@ class AppStateService extends ChangeNotifier {
       final uri = Uri.parse('$_cleanBaseUrl/rest/v1/notifications');
       await http.post(uri, headers: _headers, body: jsonEncode({'message': message}));
     } catch (_) {}
+  }
+
+  void markOrderPaid(String orderId, String methodLabel, String referenceCode) {
+    final idx = orders.indexWhere((o) => o.id == orderId);
+    if (idx == -1) return;
+    final order = orders[idx];
+    order.isPaid = true;
+    order.chatMessages.add(
+      'إيصال دفع إلكتروني موثق: تم سداد ${order.price} ج.م بنجاح عبر $methodLabel (رقم المرجع: $referenceCode)',
+    );
+    notifyListeners();
+    _pushOrderToSupabase(order, isUpdate: true);
+    _pushNotificationToSupabase(
+      'تم سداد الطلب #${order.id} بقيمة ${order.price} ج.م عبر $methodLabel (مرجع: $referenceCode)',
+    );
+  }
+
+  void rechargeWalletViaSandbox(int amount, String methodLabel, String referenceCode) {
+    customerWallet += amount;
+    notifyListeners();
+    _pushNotificationToSupabase(
+      'تم شحن محفظة العميل بمبلغ $amount ج.م عبر $methodLabel (رقم المرجع: $referenceCode)',
+    );
   }
 
   void setRole(int role) {
@@ -306,6 +333,8 @@ class AppStateService extends ChangeNotifier {
     required String paymentMethod,
     required int price,
     String? manualTechId,
+    bool isPaidInitially = false,
+    String? paymentRef,
   }) {
     final String pin = (1000 + (DateTime.now().millisecond % 8999)).toString();
     final String id = 'KH-${DateTime.now().millisecondsSinceEpoch.toString().substring(8)}';
@@ -322,6 +351,13 @@ class AppStateService extends ChangeNotifier {
           break;
         }
       }
+    }
+
+    final initialChats = <String>[
+      'النظام: تم تسجيل الطلب وإرساله لأقرب فني معتمد في منطقتك.',
+    ];
+    if (isPaidInitially && paymentRef != null) {
+      initialChats.add('إيصال دفع مسبق: تم سداد $price ج.م عبر $paymentMethod (مرجع: $paymentRef)');
     }
 
     final order = OrderItemModel(
@@ -343,6 +379,8 @@ class AppStateService extends ChangeNotifier {
       technicianId: chosenTech.id,
       technicianName: '${chosenTech.name} (يبعد ${chosenTech.distanceKm} كم)',
       technicianPhone: chosenTech.phone,
+      isPaid: isPaidInitially,
+      chatMessages: initialChats,
     );
 
     orders.insert(0, order);
@@ -350,7 +388,7 @@ class AppStateService extends ChangeNotifier {
     notifyListeners();
 
     _pushOrderToSupabase(order, isUpdate: false);
-    _pushNotificationToSupabase('طلب جديد #$id ($serviceName) في $selectedCity - موجه للفني ${chosenTech.name}');
+    _pushNotificationToSupabase('طلب جديد #$id ($serviceName) في $selectedCity - الدفع: $paymentMethod');
     return order;
   }
 

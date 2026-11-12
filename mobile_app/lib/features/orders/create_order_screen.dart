@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/routes/app_routes.dart';
 import '../../core/services/app_state_service.dart';
 import '../../core/theme/theme.dart';
+import '../../shared/widgets/payment_sandbox_modal.dart';
 import '../../shared/widgets/role_header_bar.dart';
 
 class CreateOrderScreen extends StatefulWidget {
@@ -23,7 +24,7 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
   String _appointmentSlot = 'اليوم - الفترة المسائية (04:00 م - 07:00 م)';
   String _assignmentMode = 'تلقائي حسب الأقرب جغرافياً';
   String? _selectedTechId;
-  String _paymentMethod = 'كاش عند الإتمام';
+  String _paymentMethod = 'فودافون كاش (Vodafone Cash)';
 
   final List<String> _timeSlots = const [
     'اليوم - طوارئ فورية (خلال 45 دقيقة)',
@@ -43,7 +44,7 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
     }
   }
 
-  void _submitOrder() {
+  void _finalizeOrder({bool isPaid = false, String? paymentRef, String? customMethod}) {
     final state = AppStateService.instance;
     final order = state.createOrder(
       serviceName: _selectedService,
@@ -53,15 +54,41 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
       mapCoords: _mapCoordinates,
       appointmentSlot: _appointmentSlot,
       assignmentMode: _assignmentMode,
-      paymentMethod: _paymentMethod,
+      paymentMethod: customMethod ?? _paymentMethod,
       price: int.tryParse(_priceCtrl.text.trim()) ?? 250,
       manualTechId: _assignmentMode == 'اختيار فني يدوي' ? _selectedTechId : null,
+      isPaidInitially: isPaid,
+      paymentRef: paymentRef,
     );
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('تم إنشاء الطلب #${order.id} وإرساله إلى سحابة Supabase والفني ${order.technicianName}')),
+      SnackBar(
+        content: Text(
+          isPaid
+              ? 'تم الدفع بنجاح وإنشاء الطلب #${order.id} (مرجع: $paymentRef)'
+              : 'تم إنشاء الطلب #${order.id} وإرساله إلى الفني ${order.technicianName}',
+        ),
+      ),
     );
     Navigator.pushReplacementNamed(context, AppRoutes.trackOrder, arguments: {'orderId': order.id});
+  }
+
+  void _handleCreateOrderPressed() {
+    final int price = int.tryParse(_priceCtrl.text.trim()) ?? 250;
+    if (_paymentMethod.contains('فودافون') || _paymentMethod.contains('إنستا')) {
+      final gw = _paymentMethod.contains('إنستا') ? 'instapay' : 'vodafone';
+      PaymentSandboxModal.show(
+        context,
+        title: 'سداد طلب صيانة ($_selectedService)',
+        amount: price,
+        initialGateway: gw,
+        onPaymentSuccess: (methodLabel, refCode) {
+          _finalizeOrder(isPaid: true, paymentRef: refCode, customMethod: '$methodLabel [$refCode]');
+        },
+      );
+    } else {
+      _finalizeOrder(isPaid: false);
+    }
   }
 
   @override
@@ -90,7 +117,7 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 const Expanded(
-                                  child: Text('إنشاء طلب صيانة جديد (وصف + صور + خريطة + موعد)', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+                                  child: Text('إنشاء طلب صيانة جديد (فودافون كاش / إنستا باي / كاش)', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
                                 ),
                                 TextButton.icon(
                                   icon: const Icon(Icons.arrow_back),
@@ -131,7 +158,7 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
                               ),
                             ),
                             const SizedBox(height: 14),
-                            const Text('3. إرفاق صور العطل (لمساعدة الفني في إحضار قطع الغيار):', style: TextStyle(fontWeight: FontWeight.bold)),
+                            const Text('3. إرفاق صور العطل:', style: TextStyle(fontWeight: FontWeight.bold)),
                             const SizedBox(height: 8),
                             Wrap(
                               spacing: 8,
@@ -152,42 +179,8 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
                               ],
                             ),
                             const SizedBox(height: 14),
-                            const Text('4. الموقع على الخريطة (Google Maps Egypt) والعنوان:', style: TextStyle(fontWeight: FontWeight.bold)),
+                            const Text('4. الموقع على الخريطة والعنوان:', style: TextStyle(fontWeight: FontWeight.bold)),
                             const SizedBox(height: 8),
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF0FDF4),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: AppColors.customerPrimary),
-                              ),
-                              child: Wrap(
-                                alignment: WrapAlignment.spaceBetween,
-                                crossAxisAlignment: WrapCrossAlignment.center,
-                                spacing: 10,
-                                runSpacing: 8,
-                                children: [
-                                  Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      const Icon(Icons.location_on, color: AppColors.danger),
-                                      const SizedBox(width: 6),
-                                      Text(_mapCoordinates, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                                    ],
-                                  ),
-                                  OutlinedButton.icon(
-                                    icon: const Icon(Icons.my_location, size: 15),
-                                    label: const Text('تحديث إحداثيات GPS الحالية'),
-                                    onPressed: () {
-                                      setState(() {
-                                        _mapCoordinates = '30.0595 N, 31.2230 E (${state.selectedCity} - موقع دقيق GPS)';
-                                      });
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 10),
                             TextField(
                               controller: _addressCtrl,
                               decoration: const InputDecoration(labelText: 'العنوان التفصيلي (الشارع / العمارة / الدور / الشقة)', prefixIcon: Icon(Icons.home)),
@@ -208,32 +201,6 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
                               }).toList(),
                             ),
                             const SizedBox(height: 14),
-                            const Text('6. طريقة تعيين الفني:', style: TextStyle(fontWeight: FontWeight.bold)),
-                            const SizedBox(height: 8),
-                            Wrap(
-                              spacing: 10,
-                              children: ['تلقائي حسب الأقرب جغرافياً', 'اختيار فني يدوي'].map((m) {
-                                return ChoiceChip(
-                                  label: Text(m),
-                                  selected: _assignmentMode == m,
-                                  onSelected: (_) => setState(() => _assignmentMode = m),
-                                );
-                              }).toList(),
-                            ),
-                            if (_assignmentMode == 'اختيار فني يدوي') ...[
-                              const SizedBox(height: 8),
-                              Wrap(
-                                spacing: 8,
-                                children: state.technicians.map((t) {
-                                  return ChoiceChip(
-                                    label: Text('${t.name} (${t.rating}★ - ${t.distanceKm} كم)'),
-                                    selected: _selectedTechId == t.id,
-                                    onSelected: (_) => setState(() => _selectedTechId = t.id),
-                                  );
-                                }).toList(),
-                              ),
-                            ],
-                            const SizedBox(height: 14),
                             Row(
                               children: [
                                 Expanded(
@@ -247,8 +214,12 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
                                 Expanded(
                                   child: DropdownButtonFormField<String>(
                                     value: _paymentMethod,
-                                    decoration: const InputDecoration(labelText: 'وسيلة الدفع (مصر)'),
-                                    items: ['كاش عند الإتمام', 'بطاقة بنكية (Paymob)', 'فوري (Fawry)'].map((p) {
+                                    decoration: const InputDecoration(labelText: 'بوابة الدفع (مصر)'),
+                                    items: [
+                                      'فودافون كاش (Vodafone Cash)',
+                                      'إنستا باي (InstaPay)',
+                                      'كاش عند الإتمام',
+                                    ].map((p) {
                                       return DropdownMenuItem(value: p, child: Text(p, style: const TextStyle(fontSize: 13)));
                                     }).toList(),
                                     onChanged: (v) {
@@ -260,9 +231,13 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
                             ),
                             const SizedBox(height: 20),
                             ElevatedButton.icon(
-                              icon: const Icon(Icons.check_circle),
-                              label: const Text('تأكيد الطلب وإشعار الفني فوراً'),
-                              onPressed: _submitOrder,
+                              icon: const Icon(Icons.payment),
+                              label: Text(
+                                _paymentMethod == 'كاش عند الإتمام'
+                                    ? 'تأكيد الطلب وإشعار الفني فوراً'
+                                    : 'متابعة للدفع التجريبي ($_paymentMethod) وتأكيد الطلب',
+                              ),
+                              onPressed: _handleCreateOrderPressed,
                             ),
                           ],
                         ),
