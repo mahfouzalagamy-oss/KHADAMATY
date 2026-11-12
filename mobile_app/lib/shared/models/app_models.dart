@@ -6,6 +6,7 @@ class ServiceItemModel {
   final String subtitle;
   int minPrice;
   int maxPrice;
+  final int inspectionFee;
   final IconData icon;
   final Color color;
 
@@ -15,11 +16,101 @@ class ServiceItemModel {
     required this.subtitle,
     required this.minPrice,
     required this.maxPrice,
+    this.inspectionFee = 50,
     required this.icon,
     required this.color,
   });
 
   String get priceRange => '$minPrice - $maxPrice ج.م';
+}
+
+class SparePartItemModel {
+  final String id;
+  final String name;
+  final String category;
+  final String brand;
+  int officialPrice;
+  final int warrantyMonths;
+
+  SparePartItemModel({
+    required this.id,
+    required this.name,
+    required this.category,
+    required this.brand,
+    required this.officialPrice,
+    this.warrantyMonths = 6,
+  });
+}
+
+class HomeApplianceModel {
+  final String id;
+  final String name;
+  final String brand;
+  final String locationRoom;
+  final String lastMaintenanceDate;
+  final String nextReminderDate;
+  final int healthScore;
+  final String warrantyStatus;
+
+  HomeApplianceModel({
+    required this.id,
+    required this.name,
+    required this.brand,
+    required this.locationRoom,
+    required this.lastMaintenanceDate,
+    required this.nextReminderDate,
+    this.healthScore = 94,
+    this.warrantyStatus = 'ساري تحت الضمان الذهبي',
+  });
+}
+
+class CompanyItemModel {
+  final String id;
+  final String name;
+  final String specialty;
+  final String city;
+  final String commercialReg;
+  final String taxCard;
+  int techniciansCount;
+  int activeAmcContracts;
+  double rating;
+  bool isVerified;
+
+  CompanyItemModel({
+    required this.id,
+    required this.name,
+    required this.specialty,
+    required this.city,
+    required this.commercialReg,
+    required this.taxCard,
+    this.techniciansCount = 12,
+    this.activeAmcContracts = 18,
+    this.rating = 4.9,
+    this.isVerified = true,
+  });
+}
+
+class AiDiagnosisResultModel {
+  final String title;
+  final String technicalCause;
+  final String recommendedService;
+  final List<SparePartItemModel> suggestedParts;
+  final int estimatedLabor;
+  final int inspectionFee;
+  final bool isUrgentSos;
+
+  AiDiagnosisResultModel({
+    required this.title,
+    required this.technicalCause,
+    required this.recommendedService,
+    required this.suggestedParts,
+    required this.estimatedLabor,
+    this.inspectionFee = 50,
+    this.isUrgentSos = false,
+  });
+
+  int get partsTotal => suggestedParts.fold<int>(0, (sum, p) => sum + p.officialPrice);
+  int get totalEstimatedPrice => estimatedLabor + partsTotal;
 }
 
 class TechnicianItemModel {
@@ -35,6 +126,7 @@ class TechnicianItemModel {
   final String certificatePhoto;
   final int experienceYears;
   final String walletNumber;
+  final String companyAffiliation;
   double rating;
   int completedJobs;
   bool isVerified;
@@ -54,6 +146,7 @@ class TechnicianItemModel {
     this.certificatePhoto = 'شهادة_الخبرة_والفيش.jpg',
     this.experienceYears = 5,
     this.walletNumber = '01012345678',
+    this.companyAffiliation = 'فني مستقل معتمد',
     this.rating = 4.9,
     this.completedJobs = 42,
     this.isVerified = true,
@@ -130,12 +223,28 @@ class OrderItemModel {
   String get statusText => statusLabels[statusIndex.clamp(0, 4)];
 
   List<String> get beforePhotos =>
-      attachedPhotos.where((p) => !p.startsWith('بعد_')).toList();
+      attachedPhotos.where((p) => !p.startsWith('بعد_') && !p.startsWith('قطعة_') && !p.startsWith('وسم_')).toList();
 
   List<String> get afterPhotos =>
       attachedPhotos.where((p) => p.startsWith('بعد_')).toList();
 
+  List<String> get officialSparePartsUsed =>
+      attachedPhotos.where((p) => p.startsWith('قطعة_')).map((p) => p.replaceFirst('قطعة_', '')).toList();
+
+  bool get isSosEmergency =>
+      appointmentSlot.contains('طوارئ') || description.contains('[SOS]') || attachedPhotos.contains('وسم_SOS');
+
+  bool get isFamilySafeModeActive =>
+      attachedPhotos.contains('وسم_الأمان_العائلي');
+
+  bool get isQuoteApproved =>
+      attachedPhotos.contains('وسم_مقايسة_معتمدة');
+
+  int get cashbackAmount => (price * 0.10).round();
+
   String get warrantyNumber => 'WAR-${id.replaceAll("KH-", "")}-2026';
+
+  String get familyTrackingLink => 'https://khadamaty.com/safe-track/$id?pin=$pinCode';
 
   Map<String, dynamic> toSupabaseJson() => {
         'id': id,

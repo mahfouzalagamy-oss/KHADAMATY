@@ -18,7 +18,7 @@ class KhadamatyEgyptApp extends StatelessWidget {
       builder: (context, _) {
         final state = AppStateService.instance;
         return MaterialApp(
-          title: 'خدماتي KHADAMATY - منصة الصيانة المنزلية',
+          title: 'خدماتي • صيانة Pro - المنصة المتكاملة',
           debugShowCheckedModeBanner: false,
           theme: AppTheme.build(state.currentRole),
           initialRoute: AppRoutes.home,

@@ -20,27 +20,18 @@ class _TechnicianRegistrationScreenState extends State<TechnicianRegistrationScr
 
   String _selectedSpecialty = 'تكييف وتبريد';
   String _selectedCity = 'القاهرة';
+  String _selectedCompany = 'فني مستقل معتمد';
 
-  String? _idFrontFile = 'صورة_البطاقة_الشخصية_أمامي.jpg';
-  String? _idBackFile = 'صورة_البطاقة_الشخصية_خلفي.jpg';
-  String? _certFile = 'صحيفة_الحالة_الجنائية_والخبرة.jpg';
+  String _idFrontFile = 'صورة_البطاقة_الشخصية_أمامي.jpg';
+  String _idBackFile = 'صورة_البطاقة_الشخصية_خلفي.jpg';
+  String _certFile = 'صحيفة_الحالة_الجنائية_والخبرة.jpg';
 
   void _submitApplication() {
     if (_nameCtrl.text.trim().isEmpty || _phoneCtrl.text.trim().isEmpty || _nationalIdCtrl.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           backgroundColor: AppColors.danger,
-          content: Text('يرجى إدخال اسم الفني، رقم الموبايل، ورقم البطاقة الشخصية / الهوية'),
-        ),
-      );
-      return;
-    }
-
-    if (_idFrontFile == null || _idBackFile == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          backgroundColor: AppColors.danger,
-          content: Text('يرجى إرفاق صورة الهوية (الوجه الأمامي والخلفي) لإتمام التسجيل'),
+          content: Text('يرجى إدخال اسم الفني، رقم الجوال، ورقم البطاقة الشخصية / الإقامة'),
         ),
       );
       return;
@@ -53,11 +44,12 @@ class _TechnicianRegistrationScreenState extends State<TechnicianRegistrationScr
       specialty: _selectedSpecialty,
       city: _selectedCity,
       nationalId: _nationalIdCtrl.text.trim(),
-      idFrontPhoto: _idFrontFile!,
-      idBackPhoto: _idBackFile!,
-      certificatePhoto: _certFile ?? 'غير مرفق',
-      experienceYears: int.tryParse(_expCtrl.text.trim()) ?? 3,
+      idFrontPhoto: _idFrontFile,
+      idBackPhoto: _idBackFile,
+      certificatePhoto: _certFile,
+      experienceYears: int.tryParse(_expCtrl.text.trim()) ?? 4,
       walletNumber: _walletCtrl.text.trim().isEmpty ? _phoneCtrl.text.trim() : _walletCtrl.text.trim(),
+      companyAffiliation: _selectedCompany,
     );
 
     showDialog(
@@ -68,38 +60,18 @@ class _TechnicianRegistrationScreenState extends State<TechnicianRegistrationScr
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
           title: const Row(
             children: [
-              Icon(Icons.mark_email_read, color: AppColors.syaanhOrange, size: 28),
+              Icon(Icons.verified_user, color: AppColors.syaanhOrange, size: 28),
               SizedBox(width: 8),
-              Expanded(child: Text('تم إرسال طلب التسجيل والهوية للإدارة')),
+              Expanded(child: Text('تم إرسال طلب التسجيل وصور الهوية للإدارة')),
             ],
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('مرحباً بك يا ${newTech.name} في منصة خدماتي • صيانة.'),
+              Text('تم تسجيل بيانات الفني (${newTech.name}) برقم عضوية #${newTech.id}.'),
               const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFF7ED),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.syaanhOrange),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('رقم طلب العضوية: #${newTech.id}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                    Text('رقم الهوية المرفق: ${newTech.nationalId}'),
-                    const Text('الحالة الحالية: قيد مراجعة إدارة التطبيق ⏳', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.syaanhOrange)),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 10),
-              const Text(
-                'سيقوم مدير المنصة (الأدمن) بمراجعة صورة الهوية وبياناتك وإعطاء الموافقة لتفعيل حسابك واستقبال طلبات العملاء.',
-                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
-              ),
+              const Text('الحالة الآن: قيد مراجعة إدارة التطبيق للهوية ⏳', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.syaanhOrange)),
             ],
           ),
           actions: [
@@ -109,14 +81,14 @@ class _TechnicianRegistrationScreenState extends State<TechnicianRegistrationScr
                 state.setRole(1);
                 Navigator.pushReplacementNamed(context, AppRoutes.home);
               },
-              child: const Text('الذهاب لبوابة الفني'),
+              child: const Text('بوابة الفني'),
             ),
             ElevatedButton.icon(
               icon: const Icon(Icons.admin_panel_settings, size: 16),
-              label: const Text('فتح لوحة الأدمن الآن للموافقة على الفني'),
+              label: const Text('فتح صفحة الإدارة الآن لإعطاء الموافقة'),
               onPressed: () {
                 Navigator.pop(ctx);
-                state.setRole(2);
+                state.setRole(3);
                 Navigator.pushReplacementNamed(context, AppRoutes.home);
               },
             ),
@@ -129,12 +101,13 @@ class _TechnicianRegistrationScreenState extends State<TechnicianRegistrationScr
   @override
   Widget build(BuildContext context) {
     final state = AppStateService.instance;
+    final companyOptions = ['فني مستقل معتمد', ...state.companies.map((c) => c.name)];
 
     return Scaffold(
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 920),
+            constraints: const BoxConstraints(maxWidth: 940),
             child: Column(
               children: [
                 const RoleHeaderBar(),
@@ -142,11 +115,7 @@ class _TechnicianRegistrationScreenState extends State<TechnicianRegistrationScr
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.all(16),
                     child: Card(
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18),
-                        side: const BorderSide(color: AppColors.border),
-                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
                       child: Padding(
                         padding: const EdgeInsets.all(22),
                         child: Column(
@@ -156,19 +125,9 @@ class _TechnicianRegistrationScreenState extends State<TechnicianRegistrationScr
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 const Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'تسجيل فني / مزود خدمة جديد وتوثيق الهوية (KYC)',
-                                        style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.customerPrimary),
-                                      ),
-                                      SizedBox(height: 4),
-                                      Text(
-                                        'أدخل بياناتك وارفع صورة البطاقة الشخصية أو الإقامة لمراجعتها واعتمادها من إدارة التطبيق',
-                                        style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
-                                      ),
-                                    ],
+                                  child: Text(
+                                    'تسجيل فني جديد وتوثيق الهوية الوطنية (KYC Verification)',
+                                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: AppColors.customerPrimary),
                                   ),
                                 ),
                                 OutlinedButton.icon(
@@ -178,9 +137,7 @@ class _TechnicianRegistrationScreenState extends State<TechnicianRegistrationScr
                                 ),
                               ],
                             ),
-                            const Divider(height: 26),
-                            const Text('1. البيانات الشخصية والمهنية للفني:', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.customerPrimary)),
-                            const SizedBox(height: 12),
+                            const Divider(height: 24),
                             Wrap(
                               spacing: 12,
                               runSpacing: 12,
@@ -189,10 +146,7 @@ class _TechnicianRegistrationScreenState extends State<TechnicianRegistrationScr
                                   width: 270,
                                   child: TextField(
                                     controller: _nameCtrl,
-                                    decoration: const InputDecoration(
-                                      labelText: 'الاسم الكامل (مطابق للهوية)',
-                                      prefixIcon: Icon(Icons.person),
-                                    ),
+                                    decoration: const InputDecoration(labelText: 'الاسم الكامل (مطابق للهوية)', prefixIcon: Icon(Icons.person)),
                                   ),
                                 ),
                                 SizedBox(
@@ -200,10 +154,7 @@ class _TechnicianRegistrationScreenState extends State<TechnicianRegistrationScr
                                   child: TextField(
                                     controller: _phoneCtrl,
                                     keyboardType: TextInputType.phone,
-                                    decoration: const InputDecoration(
-                                      labelText: 'رقم الجوال الفعال (مصر / قطر)',
-                                      prefixIcon: Icon(Icons.phone_android),
-                                    ),
+                                    decoration: const InputDecoration(labelText: 'رقم الجوال الفعال', prefixIcon: Icon(Icons.phone_android)),
                                   ),
                                 ),
                                 SizedBox(
@@ -211,92 +162,69 @@ class _TechnicianRegistrationScreenState extends State<TechnicianRegistrationScr
                                   child: TextField(
                                     controller: _nationalIdCtrl,
                                     keyboardType: TextInputType.number,
-                                    decoration: const InputDecoration(
-                                      labelText: 'رقم البطاقة القومي / الإقامة (QID)',
-                                      prefixIcon: Icon(Icons.badge),
-                                    ),
+                                    decoration: const InputDecoration(labelText: 'رقم البطاقة القومي / الإقامة', prefixIcon: Icon(Icons.badge)),
                                   ),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 14),
+                            const SizedBox(height: 12),
                             Wrap(
                               spacing: 12,
                               runSpacing: 12,
                               children: [
                                 SizedBox(
-                                  width: 270,
+                                  width: 260,
                                   child: DropdownButtonFormField<String>(
                                     value: _selectedSpecialty,
-                                    decoration: const InputDecoration(labelText: 'التخصص الرئيسي', prefixIcon: Icon(Icons.handyman)),
-                                    items: state.services
-                                        .map((s) => DropdownMenuItem(value: s.name, child: Text(s.name, style: const TextStyle(fontSize: 13))))
-                                        .toList(),
+                                    decoration: const InputDecoration(labelText: 'التخصص الفني', prefixIcon: Icon(Icons.handyman)),
+                                    items: state.services.map((s) => DropdownMenuItem(value: s.name, child: Text(s.name, style: const TextStyle(fontSize: 13)))).toList(),
                                     onChanged: (v) {
                                       if (v != null) setState(() => _selectedSpecialty = v);
                                     },
                                   ),
                                 ),
                                 SizedBox(
-                                  width: 270,
+                                  width: 260,
                                   child: DropdownButtonFormField<String>(
                                     value: _selectedCity,
-                                    decoration: const InputDecoration(labelText: 'المدينة / منطقة العمل', prefixIcon: Icon(Icons.location_city)),
-                                    items: state.egyptCities
-                                        .map((c) => DropdownMenuItem(value: c, child: Text(c, style: const TextStyle(fontSize: 13))))
-                                        .toList(),
+                                    decoration: const InputDecoration(labelText: 'المدينة', prefixIcon: Icon(Icons.location_on)),
+                                    items: state.egyptCities.map((c) => DropdownMenuItem(value: c, child: Text(c, style: const TextStyle(fontSize: 13)))).toList(),
                                     onChanged: (v) {
                                       if (v != null) setState(() => _selectedCity = v);
                                     },
                                   ),
                                 ),
                                 SizedBox(
-                                  width: 130,
-                                  child: TextField(
-                                    controller: _expCtrl,
-                                    keyboardType: TextInputType.number,
-                                    decoration: const InputDecoration(labelText: 'سنوات الخبرة'),
-                                  ),
-                                ),
-                                SizedBox(
-                                  width: 280,
-                                  child: TextField(
-                                    controller: _walletCtrl,
-                                    decoration: const InputDecoration(
-                                      labelText: 'رقم محفظة فودافون كاش / إنستا باي للأرباح',
-                                      prefixIcon: Icon(Icons.account_balance_wallet),
-                                    ),
+                                  width: 300,
+                                  child: DropdownButtonFormField<String>(
+                                    value: _selectedCompany,
+                                    decoration: const InputDecoration(labelText: 'التبعية (مستقل أو تابع لشركة)', prefixIcon: Icon(Icons.business)),
+                                    items: companyOptions.map((c) => DropdownMenuItem(value: c, child: Text(c, style: const TextStyle(fontSize: 12)))).toList(),
+                                    onChanged: (v) {
+                                      if (v != null) setState(() => _selectedCompany = v);
+                                    },
                                   ),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 22),
-                            const Text('2. رفع صور إثبات الهوية والمستندات (إلزامي لمراجعة الإدارة):', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.customerPrimary)),
-                            const SizedBox(height: 10),
-                            _buildUploadCard(
-                              title: 'صورة البطاقة الشخصية / الإقامة (الوجه الأمامي)',
-                              subtitle: 'يجب أن تكون الأرقام والصورة واضحة تماماً للمطابقة',
-                              fileName: _idFrontFile,
-                              onUpload: () => setState(() => _idFrontFile = 'الهوية_الوجه_الأمامي_${DateTime.now().second}.jpg'),
-                            ),
-                            const SizedBox(height: 10),
-                            _buildUploadCard(
-                              title: 'صورة البطاقة الشخصية / الإقامة (الوجه الخلفي)',
-                              subtitle: 'لتأكيد سريان صلاحية البطاقة والبيانات المهنية',
-                              fileName: _idBackFile,
-                              onUpload: () => setState(() => _idBackFile = 'الهوية_الوجه_الخلفي_${DateTime.now().second}.jpg'),
-                            ),
-                            const SizedBox(height: 10),
-                            _buildUploadCard(
-                              title: 'صحيفة الحالة الجنائية (الفيش) أو شهادة الخبرة الفنية',
-                              subtitle: 'تزيد من أولوية ظهور عروضك للعملاء وتمنحك شارة الضمان الذهبي',
-                              fileName: _certFile,
-                              onUpload: () => setState(() => _certFile = 'شهادة_الفيش_والخبرة_${DateTime.now().second}.jpg'),
-                            ),
-                            const SizedBox(height: 24),
+                            const SizedBox(height: 18),
+                            const Text('مرفقات الهوية والفيش الجنائي (تظهر في صفحة الإدارة للموافقة):', style: TextStyle(fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 8),
+                            _uploadRow('1. صورة البطاقة الشخصية (الوجه الأمامي)', _idFrontFile, () {
+                              setState(() => _idFrontFile = 'هوية_أمامي_${DateTime.now().second}.jpg');
+                            }),
+                            const SizedBox(height: 8),
+                            _uploadRow('2. صورة البطاقة الشخصية (الوجه الخلفي)', _idBackFile, () {
+                              setState(() => _idBackFile = 'هوية_خلفي_${DateTime.now().second}.jpg');
+                            }),
+                            const SizedBox(height: 8),
+                            _uploadRow('3. صحيفة الحالة الجنائية (الفيش) وشهادة الخبرة', _certFile, () {
+                              setState(() => _certFile = 'فيش_وخبرة_${DateTime.now().second}.jpg');
+                            }),
+                            const SizedBox(height: 20),
                             ElevatedButton.icon(
                               icon: const Icon(Icons.verified_user),
-                              label: const Text('إرسال بيانات الفني وصور الهوية لمراجعة إدارة التطبيق'),
+                              label: const Text('إرسال الهوية والبيانات لمراجعة الإدارة واعتماد الحساب'),
                               onPressed: _submitApplication,
                             ),
                           ],
@@ -313,50 +241,29 @@ class _TechnicianRegistrationScreenState extends State<TechnicianRegistrationScr
     );
   }
 
-  Widget _buildUploadCard({
-    required String title,
-    required String subtitle,
-    required String? fileName,
-    required VoidCallback onUpload,
-  }) {
-    final bool uploaded = fileName != null;
+  Widget _uploadRow(String label, String fileName, VoidCallback onPick) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: uploaded ? const Color(0xFFF0FDF4) : const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: uploaded ? AppColors.success : AppColors.border),
+        color: const Color(0xFFF0FDF4),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.success),
       ),
       child: Wrap(
         alignment: WrapAlignment.spaceBetween,
         crossAxisAlignment: WrapCrossAlignment.center,
-        spacing: 12,
-        runSpacing: 10,
         children: [
-          Row(
-            mainAxisSize: MainAxisSize.min,
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(
-                uploaded ? Icons.check_circle : Icons.badge_outlined,
-                color: uploaded ? AppColors.success : AppColors.syaanhOrange,
-                size: 28,
-              ),
-              const SizedBox(width: 10),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                  Text(subtitle, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-                  if (uploaded)
-                    Text('المستند المرفق: $fileName ✓', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.success)),
-                ],
-              ),
+              Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+              Text('المرفق: $fileName ✓', style: const TextStyle(fontSize: 11, color: AppColors.success)),
             ],
           ),
           OutlinedButton.icon(
-            icon: const Icon(Icons.camera_alt, size: 16),
-            label: Text(uploaded ? 'تحديث صورة الهوية' : 'التقاط / رفع الصورة'),
-            onPressed: onUpload,
+            icon: const Icon(Icons.camera_alt, size: 15),
+            label: const Text('تحديث الصورة'),
+            onPressed: onPick,
           ),
         ],
       ),

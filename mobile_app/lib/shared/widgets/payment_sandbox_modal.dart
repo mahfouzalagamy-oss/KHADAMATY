@@ -83,6 +83,7 @@ class _PaymentSandboxModalState extends State<PaymentSandboxModal> {
   Widget build(BuildContext context) {
     final bool isVodafone = _gateway == 'vodafone';
     final Color brandColor = isVodafone ? const Color(0xFFE60000) : const Color(0xFF4C1D95);
+    final int cashback = (widget.amount * 0.10).round();
 
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
@@ -95,16 +96,16 @@ class _PaymentSandboxModalState extends State<PaymentSandboxModal> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'بوابة الدفع التجريبية (Sandbox)',
-                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: brandColor),
+                  'بوابة الدفع الإلكتروني + درع الكاش باك 10%',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: brandColor),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 4),
           Text(
-            '${widget.title} — الإجمالي المطلوب: ${widget.amount} ج.م',
-            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textSecondary),
+            '${widget.title} — المبلغ: ${widget.amount} ج.م (تحصل على +$cashback ج.م كاش باك فوري وضمان 30 يوماً)',
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.success),
           ),
         ],
       ),
@@ -152,10 +153,7 @@ class _PaymentSandboxModalState extends State<PaymentSandboxModal> {
         ),
       ),
       actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('إلغاء'),
-        ),
+        TextButton(onPressed: () => Navigator.pop(context), child: const Text('إلغاء')),
       ],
     );
   }
@@ -226,7 +224,7 @@ class _PaymentSandboxModalState extends State<PaymentSandboxModal> {
           ElevatedButton.icon(
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.success),
             icon: const Icon(Icons.verified),
-            label: Text('تأكيد خصم ${widget.amount} ج.م وإصدار الإيصال'),
+            label: Text('تأكيد سداد ${widget.amount} ج.م واستلام 10% كاش باك'),
             onPressed: _completeVodafoneCash,
           ),
         ],
@@ -276,12 +274,7 @@ class _PaymentSandboxModalState extends State<PaymentSandboxModal> {
                 ],
               ),
               const SizedBox(height: 8),
-              const Center(
-                child: Icon(Icons.qr_code, size: 84, color: Color(0xFF4C1D95)),
-              ),
-              const Center(
-                child: Text('امسح رمز QR من تطبيق InstaPay أو استخدم المحاكاة اللحظية بالأسفل', style: TextStyle(fontSize: 11)),
-              ),
+              const Center(child: Icon(Icons.qr_code, size: 78, color: Color(0xFF4C1D95))),
             ],
           ),
         ),
@@ -297,7 +290,7 @@ class _PaymentSandboxModalState extends State<PaymentSandboxModal> {
         ElevatedButton.icon(
           style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4C1D95)),
           icon: const Icon(Icons.bolt),
-          label: Text('محاكاة الدفع اللحظي وتأكيد استلام ${widget.amount} ج.م'),
+          label: Text('محاكاة الدفع اللحظي (${widget.amount} ج.م) + 10% كاش باك'),
           onPressed: _completeInstaPay,
         ),
       ],

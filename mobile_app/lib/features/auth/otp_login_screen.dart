@@ -21,13 +21,13 @@ class _OtpLoginScreenState extends State<OtpLoginScreen> {
   Widget build(BuildContext context) {
     final color = AppColors.byRole(_role);
     return Scaffold(
-      appBar: AppBar(title: const Text('تسجيل الدخول برقم الجوال (OTP)')),
+      appBar: AppBar(title: const Text('تسجيل الدخول الموحد (OTP)')),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(20),
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 460),
+              constraints: const BoxConstraints(maxWidth: 480),
               child: Card(
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
                 child: Padding(
@@ -44,16 +44,18 @@ class _OtpLoginScreenState extends State<OtpLoginScreen> {
                       ),
                       const SizedBox(height: 14),
                       Wrap(
-                        spacing: 8,
+                        spacing: 6,
+                        runSpacing: 6,
                         alignment: WrapAlignment.center,
                         children: [
                           ChoiceChip(label: const Text('عميل'), selected: _role == 0, onSelected: (_) => setState(() => _role = 0)),
                           ChoiceChip(label: const Text('فني صيانة'), selected: _role == 1, onSelected: (_) => setState(() => _role = 1)),
-                          ChoiceChip(label: const Text('إدارة التطبيق'), selected: _role == 2, onSelected: (_) => setState(() => _role = 2)),
+                          ChoiceChip(label: const Text('شركة صيانة'), selected: _role == 2, onSelected: (_) => setState(() => _role = 2)),
+                          ChoiceChip(label: const Text('إدارة التطبيق'), selected: _role == 3, onSelected: (_) => setState(() => _role = 3)),
                         ],
                       ),
                       const SizedBox(height: 16),
-                      TextField(controller: _nameCtrl, decoration: const InputDecoration(labelText: 'الاسم الكامل', prefixIcon: Icon(Icons.person))),
+                      TextField(controller: _nameCtrl, decoration: const InputDecoration(labelText: 'الاسم الكامل / اسم الشركة', prefixIcon: Icon(Icons.person))),
                       const SizedBox(height: 12),
                       TextField(
                         controller: _phoneCtrl,

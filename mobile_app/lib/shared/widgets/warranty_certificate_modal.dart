@@ -42,11 +42,11 @@ class WarrantyCertificateModal extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'شهادة الضمان الذهبي والفاتورة المعتمدة',
+                    'شهادة الضمان الذهبي والمقايسة المعتمدة (PDF)',
                     style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900),
                   ),
                   Text(
-                    'رقم الوثيقة: ${order.warrantyNumber} • ضمان إعادة الخدمة مجاناً 100%',
+                    'رقم الوثيقة: ${order.warrantyNumber} • ضمان 30 يوماً + 10% كاش باك',
                     style: const TextStyle(color: Colors.white70, fontSize: 11),
                   ),
                 ],
@@ -56,7 +56,7 @@ class WarrantyCertificateModal extends StatelessWidget {
         ),
       ),
       content: SizedBox(
-        width: 500,
+        width: 520,
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -90,34 +90,24 @@ class WarrantyCertificateModal extends StatelessWidget {
                     Text('تفاصيل الإصلاح: ${order.description}', style: const TextStyle(fontSize: 12)),
                     const SizedBox(height: 6),
                     Text('العميل: ${order.customerName} (${order.customerPhone})', style: const TextStyle(fontSize: 12)),
-                    Text('العنوان: ${order.address}', style: const TextStyle(fontSize: 12)),
-                    const SizedBox(height: 6),
-                    Row(
-                      children: [
-                        const Icon(Icons.verified, color: AppColors.success, size: 16),
-                        const SizedBox(width: 4),
-                        Expanded(
-                          child: Text(
-                            'الفني المنفذ (موثق الهوية): ${order.technicianName}',
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.customerPrimary),
-                          ),
-                        ),
-                      ],
-                    ),
+                    Text('الفني المنفذ (موثق الهوية): ${order.technicianName}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.customerPrimary)),
+                    if (order.officialSparePartsUsed.isNotEmpty) ...[
+                      const Divider(),
+                      const Text('قطع الغيار الرسمية المركبة (من كتالوج المنصة):', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                      ...order.officialSparePartsUsed.map((p) => Text('• $p', style: const TextStyle(fontSize: 11, color: AppColors.success))),
+                    ],
                     const Divider(),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('وسيلة السداد: ${order.paymentMethod}', style: const TextStyle(fontSize: 12)),
-                        Text('الإجمالي: ${order.price} ج.م', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: AppColors.syaanhOrange)),
+                        Text('الكاش باك المكتسب: +${order.cashbackAmount} ج.م', style: const TextStyle(fontSize: 12, color: AppColors.success, fontWeight: FontWeight.bold)),
+                        Text('الإجمالي المعتمد: ${order.price} ج.م', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: AppColors.syaanhOrange)),
                       ],
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 14),
-              const Text('توثيق الحالة بالصور (قبل وبعد الصيانة):', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
               Row(
                 children: [
                   Expanded(
@@ -130,14 +120,9 @@ class WarrantyCertificateModal extends StatelessWidget {
                       ),
                       child: Column(
                         children: [
-                          const Icon(Icons.camera_alt_outlined, color: AppColors.danger, size: 28),
-                          const SizedBox(height: 4),
+                          const Icon(Icons.camera_alt, color: AppColors.danger, size: 24),
                           const Text('صور قبل الصيانة', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                          Text(
-                            order.beforePhotos.isEmpty ? 'لا توجد صور' : order.beforePhotos.join('\n'),
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
-                          ),
+                          Text(order.beforePhotos.join('\n'), textAlign: TextAlign.center, style: const TextStyle(fontSize: 11)),
                         ],
                       ),
                     ),
@@ -153,11 +138,10 @@ class WarrantyCertificateModal extends StatelessWidget {
                       ),
                       child: Column(
                         children: [
-                          const Icon(Icons.check_circle_outline, color: AppColors.success, size: 28),
-                          const SizedBox(height: 4),
+                          const Icon(Icons.check_circle, color: AppColors.success, size: 24),
                           const Text('صور بعد الإصلاح', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                           Text(
-                            order.afterPhotos.isEmpty ? 'بانتظار رفع صورة الإتمام' : order.afterPhotos.join('\n'),
+                            order.afterPhotos.isEmpty ? 'بانتظار صورة الإتمام' : order.afterPhotos.join('\n'),
                             textAlign: TextAlign.center,
                             style: const TextStyle(fontSize: 11, color: AppColors.success),
                           ),
@@ -167,7 +151,7 @@ class WarrantyCertificateModal extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 12),
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
@@ -177,19 +161,12 @@ class WarrantyCertificateModal extends StatelessWidget {
                 ),
                 child: const Row(
                   children: [
-                    Icon(Icons.qr_code, size: 64, color: AppColors.customerPrimary),
+                    Icon(Icons.qr_code, size: 58, color: AppColors.customerPrimary),
                     SizedBox(width: 12),
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('ختم ضمان منصة خدماتي • صيانة لمدة 30 يوماً', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12)),
-                          SizedBox(height: 4),
-                          Text(
-                            'تضمن المنصة إعادة تنفيذ الخدمة مجاناً أو استرداد المبلغ بالكامل في حال ظهور نفس العطل خلال فترة الضمان.',
-                            style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
-                          ),
-                        ],
+                      child: Text(
+                        'وثيقة ضمان رسمية صادرة من منصة خدماتي • صيانة لمدة 30 يوماً على المصنعية وحتى 24 شهراً على قطع الغيار الرسمية.',
+                        style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
                       ),
                     ),
                   ],
@@ -202,16 +179,10 @@ class WarrantyCertificateModal extends StatelessWidget {
       actions: [
         OutlinedButton.icon(
           icon: const Icon(Icons.copy, size: 16),
-          label: const Text('نسخ بيانات الشهادة'),
+          label: const Text('نسخ الشهادة'),
           onPressed: () {
-            Clipboard.setData(
-              ClipboardData(
-                text: 'شهادة ضمان خدماتي #${order.warrantyNumber} - طلب #${order.id} - الخدمة: ${order.serviceName} - الفني: ${order.technicianName} - المبلغ: ${order.price} ج.م',
-              ),
-            );
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('تم نسخ بيانات شهادة الضمان الموثقة إلى الحافظة')),
-            );
+            Clipboard.setData(ClipboardData(text: 'شهادة ضمان #${order.warrantyNumber} - طلب #${order.id}'));
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم نسخ بيانات شهادة الضمان إلى الحافظة')));
           },
         ),
         ElevatedButton.icon(
@@ -220,10 +191,7 @@ class WarrantyCertificateModal extends StatelessWidget {
           onPressed: () {
             Navigator.pop(context);
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                backgroundColor: AppColors.success,
-                content: Text('تم اعتماد وحفظ شهادة الضمان الرقمية (${order.warrantyNumber}.pdf) بنجاح!'),
-              ),
+              SnackBar(backgroundColor: AppColors.success, content: Text('تم حفظ شهادة الضمان (${order.warrantyNumber}.pdf) بنجاح!')),
             );
           },
         ),

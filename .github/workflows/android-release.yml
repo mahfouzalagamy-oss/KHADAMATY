@@ -34,7 +34,7 @@ jobs:
           channel: 'stable'
           cache: false
 
-      - name: Build Supabase-Connected Web & Android Release
+      - name: Analyze & Build Supabase-Connected Enterprise Web & Android Release
         run: |
           flutter create --org com.khadamaty.official --project-name khadamaty_app --platforms android,web build_app
           rm -rf build_app/lib/*
@@ -43,6 +43,7 @@ jobs:
           cd build_app
           flutter pub add http
           flutter pub get
+          flutter analyze --no-fatal-infos --no-fatal-warnings
           sed -i 's/<head>/<head><link href="https:\/\/fonts.googleapis.com\/css2?family=Cairo:wght@400;700;900\&display=swap" rel="stylesheet">/g' web/index.html
           flutter build web --release --no-tree-shake-icons
           echo "www.khadamaty.com" > build/web/CNAME
