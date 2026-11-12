@@ -57,12 +57,12 @@ class OrderItemModel {
   final String address;
   final String mapCoordinates;
   final String appointmentSlot;
-  final String assignmentMode; // تلقائي حسب القرب / يدوي
+  final String assignmentMode;
   final String customerName;
   final String customerPhone;
   final String pinCode;
-  final String paymentMethod; // كاش / بطاقة Paymob / فوري
-  int statusIndex; // 0: جديد, 1: مقبول, 2: في الطريق, 3: قيد التنفيذ, 4: مكتمل
+  final String paymentMethod;
+  int statusIndex;
   int price;
   String technicianId;
   String technicianName;
@@ -108,4 +108,58 @@ class OrderItemModel {
   ];
 
   String get statusText => statusLabels[statusIndex.clamp(0, 4)];
+
+  Map<String, dynamic> toSupabaseJson() => {
+        'id': id,
+        'service_name': serviceName,
+        'description': description,
+        'attached_photos': attachedPhotos,
+        'city': city,
+        'address': address,
+        'map_coordinates': mapCoordinates,
+        'appointment_slot': appointmentSlot,
+        'assignment_mode': assignmentMode,
+        'customer_name': customerName,
+        'customer_phone': customerPhone,
+        'pin_code': pinCode,
+        'payment_method': paymentMethod,
+        'status_index': statusIndex,
+        'price': price,
+        'technician_id': technicianId,
+        'technician_name': technicianName,
+        'technician_phone': technicianPhone,
+        'is_paid': isPaid,
+        'customer_rating': customerRating,
+        'customer_review': customerReview,
+        'chat_messages': chatMessages,
+      };
+
+  factory OrderItemModel.fromSupabaseJson(Map<String, dynamic> json) {
+    final rawPhotos = json['attached_photos'];
+    final rawChats = json['chat_messages'];
+    return OrderItemModel(
+      id: (json['id'] ?? 'KH-0000').toString(),
+      serviceName: (json['service_name'] ?? 'صيانة عامة').toString(),
+      description: (json['description'] ?? '').toString(),
+      attachedPhotos: rawPhotos is List ? rawPhotos.map((e) => e.toString()).toList() : ['صورة_العطل.jpg'],
+      city: (json['city'] ?? 'القاهرة').toString(),
+      address: (json['address'] ?? '').toString(),
+      mapCoordinates: (json['map_coordinates'] ?? '').toString(),
+      appointmentSlot: (json['appointment_slot'] ?? '').toString(),
+      assignmentMode: (json['assignment_mode'] ?? 'تلقائي').toString(),
+      customerName: (json['customer_name'] ?? 'عميل خدماتي').toString(),
+      customerPhone: (json['customer_phone'] ?? '').toString(),
+      pinCode: (json['pin_code'] ?? '1234').toString(),
+      paymentMethod: (json['payment_method'] ?? 'كاش').toString(),
+      statusIndex: (json['status_index'] is int) ? json['status_index'] as int : int.tryParse(json['status_index'].toString()) ?? 0,
+      price: (json['price'] is int) ? json['price'] as int : int.tryParse(json['price'].toString()) ?? 300,
+      technicianId: (json['technician_id'] ?? 'TECH-1').toString(),
+      technicianName: (json['technician_name'] ?? 'م. مصطفى السيد').toString(),
+      technicianPhone: (json['technician_phone'] ?? '01066554433').toString(),
+      isPaid: json['is_paid'] == true,
+      customerRating: json['customer_rating'] is int ? json['customer_rating'] as int : null,
+      customerReview: json['customer_review']?.toString(),
+      chatMessages: rawChats is List ? rawChats.map((e) => e.toString()).toList() : ['النظام: تم استلام الطلب على السحابة.'],
+    );
+  }
 }

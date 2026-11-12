@@ -1,13 +1,25 @@
+import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import '../../shared/models/app_models.dart';
 
 class AppStateService extends ChangeNotifier {
   static final AppStateService instance = AppStateService._internal();
-  AppStateService._internal();
+  AppStateService._internal() {
+    if (supabaseUrl.isNotEmpty && supabaseAnonKey.isNotEmpty) {
+      startRealtimePolling();
+    }
+  }
 
-  int currentRole = 0; // 0: العميل, 1: الفني, 2: الأدمن
+  String supabaseUrl = '';
+  String supabaseAnonKey = '';
+  bool isCloudConnected = false;
+  String lastSyncStatus = 'يعمل بالوضع المحلي (اضغط "ربط Supabase" للمزامنة الحية بين الهواتف)';
+  Timer? _syncTimer;
+
+  int currentRole = 0;
   bool isAuthenticated = false;
-  bool isArabic = true;
   String currentUserName = 'أحمد محمود';
   String currentUserPhone = '01012345678';
   String selectedCity = 'القاهرة';
@@ -137,14 +149,14 @@ class AppStateService extends ChangeNotifier {
       attachedPhotos: ['صورة_الوحدة_الداخلية.jpg', 'صورة_عداد_الفريون.jpg'],
       city: 'القاهرة',
       address: 'مدينة نصر - شارع عباس العقاد - برج التطبيقيين الدور 5',
-      mapCoordinates: '30.0561° N, 31.3301° E (تم التحديد على خرائط جوجل)',
+      mapCoordinates: '30.0561 N, 31.3301 E (تم التحديد على خرائط جوجل)',
       appointmentSlot: 'اليوم - الفترة المسائية (04:00 م - 07:00 م)',
       assignmentMode: 'تلقائي حسب الأقرب جغرافياً',
       customerName: 'أحمد محمود',
       customerPhone: '01012345678',
       pinCode: '4829',
       paymentMethod: 'بطاقة بنكية (Paymob)',
-      statusIndex: 1, // مقبول
+      statusIndex: 1,
       price: 450,
       technicianId: 'TECH-1',
       technicianName: 'م. مصطفى السيد (يبعد 1.2 كم)',
@@ -155,30 +167,105 @@ class AppStateService extends ChangeNotifier {
         'م. مصطفى السيد: أهلاً بحضرتك يا فندم، تم قبول الطلب وسأتحرك إليك في الموعد.',
       ],
     ),
-    OrderItemModel(
-      id: 'KH-8820',
-      serviceName: 'سباكة',
-      description: 'تغيير خلاط مياه وإصلاح تسريب أسفل حوض المطبخ بقطع غيار أصلية',
-      attachedPhotos: ['صورة_تسريب_الحوض.jpg'],
-      city: 'القاهرة',
-      address: 'المعادي - شارع 9 - عمارة 24',
-      mapCoordinates: '29.9602° N, 31.2569° E (تم التحديد على خرائط جوجل)',
-      appointmentSlot: 'أمس - الفترة الصباحية (11:00 ص - 02:00 م)',
-      assignmentMode: 'تلقائي حسب الأقرب جغرافياً',
-      customerName: 'أحمد محمود',
-      customerPhone: '01012345678',
-      pinCode: '7712',
-      paymentMethod: 'كاش عند الإتمام',
-      statusIndex: 4, // مكتمل
-      price: 350,
-      technicianId: 'TECH-2',
-      technicianName: 'م. حسن عبد السلام',
-      technicianPhone: '01022334455',
-      isPaid: true,
-      customerRating: 5,
-      customerReview: 'فني ممتاز وملتزم جداً بالموعد والنظافة.',
-    ),
   ];
+
+  Map<String, String> get _headers => {
+        'apikey': supabaseAnonKey.trim(),
+        'Authorization': 'Bearer ${supabaseAnonKey.trim()}',
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation',
+      };
+
+  String get _cleanBaseUrl => supabaseUrl.trim().replaceAll(RegExp(r'/$'), '');
+
+  Future<bool> configureSupabaseConnection(String url, String key) async {
+    supabaseUrl = url.trim();
+    supabaseAnonKey = key.trim();
+    if (supabaseUrl.isEmpty || supabaseAnonKey.isEmpty) {
+      isCloudConnected = false;
+      lastSyncStatus = 'لم يتم إدخال بيانات السحابة بعد';
+      notifyListeners();
+      return false;
+    }
+    final ok = await syncFromSupabase();
+    if (ok) {
+      startRealtimePolling();
+    }
+    return ok;
+  }
+
+  void startRealtimePolling() {
+    _syncTimer?.cancel();
+    syncFromSupabase();
+    _syncTimer = Timer.periodic(const Duration(seconds: 4), (_) {
+      syncFromSupabase();
+    });
+  }
+
+  Future<bool> syncFromSupabase() async {
+    if (supabaseUrl.trim().isEmpty || supabaseAnonKey.trim().isEmpty) return false;
+    try {
+      final ordersUri = Uri.parse('$_cleanBaseUrl/rest/v1/orders?select=*&order=created_at.desc');
+      final res = await http.get(ordersUri, headers: _headers).timeout(const Duration(seconds: 6));
+
+      if (res.statusCode >= 200 && res.statusCode < 300) {
+        final List<dynamic> data = jsonDecode(utf8.decode(res.bodyBytes)) as List<dynamic>;
+        if (data.isNotEmpty) {
+          orders
+            ..clear()
+            ..addAll(data.map((item) => OrderItemModel.fromSupabaseJson(item as Map<String, dynamic>)));
+          activeOrderId ??= orders.first.id;
+        }
+        isCloudConnected = true;
+        lastSyncStatus = 'متصل بسحابة Supabase حياً (${orders.length} طلبات متزامنة)';
+      } else {
+        isCloudConnected = false;
+        lastSyncStatus = 'تنبيه سحابة Supabase: كود ${res.statusCode} (تأكد من تشغيل كود SQL)';
+      }
+
+      final notifUri = Uri.parse('$_cleanBaseUrl/rest/v1/notifications?select=*&order=id.desc&limit=8');
+      final notifRes = await http.get(notifUri, headers: _headers).timeout(const Duration(seconds: 5));
+      if (notifRes.statusCode >= 200 && notifRes.statusCode < 300) {
+        final List<dynamic> nData = jsonDecode(utf8.decode(notifRes.bodyBytes)) as List<dynamic>;
+        if (nData.isNotEmpty) {
+          notifications
+            ..clear()
+            ..addAll(nData.map((n) => (n['message'] ?? '').toString()).where((s) => s.isNotEmpty));
+        }
+      }
+      notifyListeners();
+      return isCloudConnected;
+    } catch (e) {
+      isCloudConnected = false;
+      lastSyncStatus = 'تعذر الاتصال بالسحابة حالياً - يعمل بالذاكرة المحلية';
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<void> _pushOrderToSupabase(OrderItemModel order, {bool isUpdate = false}) async {
+    if (supabaseUrl.trim().isEmpty || supabaseAnonKey.trim().isEmpty) return;
+    try {
+      if (isUpdate) {
+        final uri = Uri.parse('$_cleanBaseUrl/rest/v1/orders?id=eq.${order.id}');
+        await http.patch(uri, headers: _headers, body: jsonEncode(order.toSupabaseJson()));
+      } else {
+        final uri = Uri.parse('$_cleanBaseUrl/rest/v1/orders');
+        await http.post(uri, headers: _headers, body: jsonEncode(order.toSupabaseJson()));
+      }
+      await syncFromSupabase();
+    } catch (_) {}
+  }
+
+  Future<void> _pushNotificationToSupabase(String message) async {
+    notifications.insert(0, message);
+    notifyListeners();
+    if (supabaseUrl.trim().isEmpty || supabaseAnonKey.trim().isEmpty) return;
+    try {
+      final uri = Uri.parse('$_cleanBaseUrl/rest/v1/notifications');
+      await http.post(uri, headers: _headers, body: jsonEncode({'message': message}));
+    } catch (_) {}
+  }
 
   void setRole(int role) {
     currentRole = role;
@@ -195,8 +282,7 @@ class AppStateService extends ChangeNotifier {
     currentUserName = name.trim().isEmpty ? 'عميل خدماتي' : name.trim();
     currentRole = role;
     lastOtp = '1234';
-    notifications.insert(0, 'رمز التحقق OTP للدخول إلى حسابك هو: 1234');
-    notifyListeners();
+    _pushNotificationToSupabase('رمز التحقق OTP للدخول إلى حسابك ($phone) هو: 1234');
     return lastOtp;
   }
 
@@ -252,7 +338,7 @@ class AppStateService extends ChangeNotifier {
       customerPhone: currentUserPhone,
       pinCode: pin,
       paymentMethod: paymentMethod,
-      statusIndex: 0, // جديد
+      statusIndex: 0,
       price: price,
       technicianId: chosenTech.id,
       technicianName: '${chosenTech.name} (يبعد ${chosenTech.distanceKm} كم)',
@@ -261,8 +347,10 @@ class AppStateService extends ChangeNotifier {
 
     orders.insert(0, order);
     activeOrderId = order.id;
-    notifications.insert(0, 'تم إنشاء الطلب #$id بحالة (جديد) وإشعار الفني ${chosenTech.name}.');
     notifyListeners();
+
+    _pushOrderToSupabase(order, isUpdate: false);
+    _pushNotificationToSupabase('طلب جديد #$id ($serviceName) في $selectedCity - موجه للفني ${chosenTech.name}');
     return order;
   }
 
@@ -284,8 +372,9 @@ class AppStateService extends ChangeNotifier {
       technicianEarnings += (order.price * 0.85);
       order.chatMessages.add('النظام: اكتمل الطلب بنجاح وتم إصدار الفاتورة وشهادة الضمان لمدة 30 يوماً.');
     }
-    notifications.insert(0, 'تحديث الطلب #${order.id}: الحالة الآن (${order.statusText})');
     notifyListeners();
+    _pushOrderToSupabase(order, isUpdate: true);
+    _pushNotificationToSupabase('تحديث سحابي للطلب #${order.id}: الحالة الآن (${order.statusText})');
   }
 
   void rejectOrderByTechnician(String orderId) {
@@ -293,8 +382,9 @@ class AppStateService extends ChangeNotifier {
     if (idx == -1) return;
     orders[idx].technicianName = 'جاري إعادة التعيين التلقائي لأقرب فني بديل...';
     orders[idx].statusIndex = 0;
-    notifications.insert(0, 'تم تحويل الطلب #$orderId تلقائياً لأقرب فني متاح آخر.');
     notifyListeners();
+    _pushOrderToSupabase(orders[idx], isUpdate: true);
+    _pushNotificationToSupabase('تم تحويل الطلب #$orderId تلقائياً لأقرب فني متاح آخر.');
   }
 
   void sendChatMessage(String orderId, String sender, String text) {
@@ -303,6 +393,7 @@ class AppStateService extends ChangeNotifier {
     if (idx == -1) return;
     orders[idx].chatMessages.add('$sender: ${text.trim()}');
     notifyListeners();
+    _pushOrderToSupabase(orders[idx], isUpdate: true);
   }
 
   void submitReview(String orderId, int stars, String comment) {
@@ -310,8 +401,9 @@ class AppStateService extends ChangeNotifier {
     if (idx == -1) return;
     orders[idx].customerRating = stars;
     orders[idx].customerReview = comment.trim().isEmpty ? 'خدمة ممتازة وسريعة' : comment.trim();
-    notifications.insert(0, 'شكراً لتقييمك الطلب #$orderId بـ $stars نجوم!');
     notifyListeners();
+    _pushOrderToSupabase(orders[idx], isUpdate: true);
+    _pushNotificationToSupabase('تقييم جديد للطلب #$orderId: $stars نجوم');
   }
 
   void updateServicePrice(String serviceId, int newMin, int newMax) {

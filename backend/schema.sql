@@ -80,3 +80,25 @@ CREATE TABLE notifications (
     is_read BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Mobile app sync uses the anon key for orders and notifications only.
+-- Safe to run this block alone when the tables already exist on Supabase.
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'anon')
+     AND EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'authenticated') THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE orders TO anon, authenticated;
+    GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE notifications TO anon, authenticated;
+    GRANT USAGE, SELECT ON SEQUENCE notifications_id_seq TO anon, authenticated;
+    ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
+    ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
+    DROP POLICY IF EXISTS orders_anon_sync ON orders;
+    CREATE POLICY orders_anon_sync ON orders
+      FOR ALL TO anon, authenticated
+      USING (true) WITH CHECK (true);
+    DROP POLICY IF EXISTS notifications_anon_sync ON notifications;
+    CREATE POLICY notifications_anon_sync ON notifications
+      FOR ALL TO anon, authenticated
+      USING (true) WITH CHECK (true);
+  END IF;
+END $$;

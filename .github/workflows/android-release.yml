@@ -29,13 +29,14 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Copy Full Modular Architecture (core/shared/features) and Build
+      - name: Build Supabase-Connected Web & Android Release
         run: |
           flutter create --org com.khadamaty.official --project-name khadamaty_app --platforms android,web build_app
           rm -rf build_app/lib/*
           cp -r mobile_app/lib/* build_app/lib/
           rm -rf build_app/test
           cd build_app
+          flutter pub add http
           flutter pub get
           sed -i 's/<head>/<head><link href="https:\/\/fonts.googleapis.com\/css2?family=Cairo:wght@400;700;900\&display=swap" rel="stylesheet">/g' web/index.html
           flutter build web --release --no-tree-shake-icons

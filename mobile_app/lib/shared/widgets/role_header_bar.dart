@@ -12,23 +12,105 @@ class RoleHeaderBar extends StatelessWidget {
       builder: (ctx) => Directionality(
         textDirection: TextDirection.rtl,
         child: AlertDialog(
-          title: const Text('مركز الإشعارات الفورية'),
+          title: const Text('مركز الإشعارات الفورية (Supabase Live)'),
           content: SizedBox(
             width: 420,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: state.notifications
-                  .take(5)
-                  .map((n) => ListTile(
-                        dense: true,
-                        leading: const Icon(Icons.notifications_active, color: AppColors.customerPrimary),
-                        title: Text(n, style: const TextStyle(fontSize: 13)),
-                      ))
-                  .toList(),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: state.notifications
+                    .take(8)
+                    .map((n) => ListTile(
+                          dense: true,
+                          leading: const Icon(Icons.notifications_active, color: AppColors.customerPrimary),
+                          title: Text(n, style: const TextStyle(fontSize: 13)),
+                        ))
+                    .toList(),
+              ),
             ),
           ),
           actions: [
+            TextButton.icon(
+              icon: const Icon(Icons.sync),
+              label: const Text('تحديث الآن'),
+              onPressed: () => state.syncFromSupabase(),
+            ),
             ElevatedButton(onPressed: () => Navigator.pop(ctx), child: const Text('إغلاق')),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showSupabaseConfigDialog(BuildContext context, AppStateService state) {
+    final urlCtrl = TextEditingController(text: state.supabaseUrl);
+    final keyCtrl = TextEditingController(text: state.supabaseAnonKey);
+
+    showDialog(
+      context: context,
+      builder: (ctx) => Directionality(
+        textDirection: TextDirection.rtl,
+        child: AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.cloud_done, color: AppColors.customerPrimary),
+              SizedBox(width: 8),
+              Expanded(child: Text('إعدادات الربط السحابي المباشر (Supabase)')),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  state.lastSyncStatus,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                    color: state.isCloudConnected ? AppColors.success : AppColors.accentAmber,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: urlCtrl,
+                  decoration: const InputDecoration(
+                    labelText: 'Supabase Project URL (https://xxxx.supabase.co)',
+                    prefixIcon: Icon(Icons.link),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: keyCtrl,
+                  decoration: const InputDecoration(
+                    labelText: 'Supabase anon public API Key (eyJ...)',
+                    prefixIcon: Icon(Icons.vpn_key),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('إغلاق')),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.sync),
+              label: const Text('اتصال ومزامنة الهواتف الآن'),
+              onPressed: () async {
+                final ok = await state.configureSupabaseConnection(urlCtrl.text, keyCtrl.text);
+                if (ctx.mounted) {
+                  Navigator.pop(ctx);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        ok
+                            ? 'تم الاتصال بسحابة Supabase بنجاح! الطلبات والإشعارات متزامنة الآن بين الهواتف.'
+                            : 'تم حفظ البيانات، تأكد من تشغيل كود SQL في Supabase لبدء المزامنة.',
+                      ),
+                    ),
+                  );
+                }
+              },
+            ),
           ],
         ),
       ),
@@ -99,9 +181,39 @@ class RoleHeaderBar extends StatelessWidget {
               ),
               Wrap(
                 crossAxisAlignment: WrapCrossAlignment.center,
-                spacing: 8,
+                spacing: 6,
                 runSpacing: 6,
                 children: [
+                  InkWell(
+                    onTap: () => _showSupabaseConfigDialog(context, state),
+                    borderRadius: BorderRadius.circular(20),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: state.isCloudConnected ? const Color(0xFFDCFCE7) : const Color(0xFFFEF3C7),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            state.isCloudConnected ? Icons.cloud_done : Icons.cloud_off,
+                            size: 15,
+                            color: state.isCloudConnected ? AppColors.success : AppColors.accentAmber,
+                          ),
+                          const SizedBox(width: 5),
+                          Text(
+                            state.isCloudConnected ? 'Supabase متصل حياً' : 'ربط Supabase',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: state.isCloudConnected ? AppColors.success : AppColors.textPrimary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8),
                     decoration: BoxDecoration(border: Border.all(color: AppColors.border), borderRadius: BorderRadius.circular(10)),

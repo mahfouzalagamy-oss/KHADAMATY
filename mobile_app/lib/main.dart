@@ -4,6 +4,11 @@ import 'core/services/app_state_service.dart';
 import 'core/theme/theme.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  final state = AppStateService.instance;
+  if (state.supabaseUrl.isNotEmpty && state.supabaseAnonKey.isNotEmpty) {
+    state.connectSupabase(state.supabaseUrl, state.supabaseAnonKey);
+  }
   runApp(const KhadamatyEgyptApp());
 }
 
